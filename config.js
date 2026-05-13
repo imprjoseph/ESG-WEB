@@ -92,7 +92,7 @@ const CONFIG = {
 
   // ─── Demo 模式 ──────────────────────────────────────────
   // 設為 true 時使用 Demo 資料（不連接 GAS API）
-  DEMO_MODE: true,
+  DEMO_MODE: false,
 
   // ─── 功能開關 ────────────────────────────────────────────
   FEATURES: {
