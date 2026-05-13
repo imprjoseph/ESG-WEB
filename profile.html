@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GreenStep | 個人資料</title>
+<link rel="manifest" href="manifest.json">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{--g900:#0a2e1a;--g800:#0d3d23;--g700:#0f4d2c;--g600:#146b38;--g500:#1a8a46;--g400:#22c55e;--g300:#4ade80;--teal:#0ff4c6;--yellow:#ffd60a;--orange:#ff6b35}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Noto Sans TC',sans-serif;background:var(--g900);min-height:100vh;overflow-x:hidden}
+  .font-display{font-family:'Syne',sans-serif}
+  .bg-mesh{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 80% 60% at 20% 10%,rgba(26,138,70,.22) 0%,transparent 60%),radial-gradient(ellipse 60% 80% at 80% 80%,rgba(15,244,198,.1) 0%,transparent 50%)}
+  .grid-overlay{position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(26,138,70,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(26,138,70,.06) 1px,transparent 1px);background-size:48px 48px;mask-image:radial-gradient(ellipse 90% 90% at 50% 50%,black 40%,transparent 100%)}
+  .glass{background:rgba(13,61,35,.55);backdrop-filter:blur(24px);border:1px solid rgba(34,197,94,.18);border-radius:20px}
+  .glass-sm{background:rgba(13,61,35,.4);backdrop-filter:blur(16px);border:1px solid rgba(34,197,94,.14);border-radius:14px}
+  .sidebar{width:240px;min-height:100vh;background:rgba(8,32,17,.9);backdrop-filter:blur(24px);border-right:1px solid rgba(34,197,94,.12);position:fixed;left:0;top:0;z-index:50;display:flex;flex-direction:column;transition:.3s}
+  .nav-item{display:flex;align-items:center;gap:12px;padding:12px 20px;border-radius:12px;cursor:pointer;transition:.2s;color:rgba(255,255,255,.5);font-size:14px;margin:2px 8px;text-decoration:none}
+  .nav-item:hover,.nav-item.active{background:rgba(34,197,94,.12);color:var(--g300)}
+  .nav-item.active{border-left:3px solid var(--g400)}
+  .main{margin-left:240px;padding:28px;min-height:100vh;position:relative;z-index:1}
+  .btn-primary{background:linear-gradient(135deg,var(--g500),var(--g400));color:#fff;font-weight:700;border:none;border-radius:14px;cursor:pointer;transition:.2s;font-family:'Noto Sans TC',sans-serif}
+  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(34,197,94,.35)}
+  .btn-ghost{background:transparent;border:1px solid rgba(34,197,94,.3);color:var(--g300);font-weight:600;border-radius:14px;cursor:pointer;transition:.2s;font-family:'Noto Sans TC',sans-serif}
+  .btn-ghost:hover{background:rgba(34,197,94,.08)}
+  /* Avatar */
+  .avatar-ring{width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,var(--g400),var(--teal));padding:3px;flex-shrink:0}
+  .avatar-inner{width:100%;height:100%;border-radius:50%;background:linear-gradient(135deg,var(--g700),var(--g600));display:flex;align-items:center;justify-content:center;font-size:36px;overflow:hidden}
+  /* Level bar */
+  .level-bar-track{height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden;flex:1}
+  .level-bar-fill{height:8px;border-radius:4px;background:linear-gradient(90deg,var(--g400),var(--teal));transition:width .8s ease}
+  /* Badge */
+  .badge-item{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px;background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.12);border-radius:14px;transition:.2s;cursor:pointer;position:relative}
+  .badge-item:hover{background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.3);transform:translateY(-2px)}
+  .badge-item.locked{opacity:.35}
+  .badge-glow{box-shadow:0 0 16px rgba(15,244,198,.35)}
+  /* Timeline */
+  .tl-dot{width:10px;height:10px;border-radius:50%;background:var(--g400);flex-shrink:0;margin-top:5px}
+  .tl-line{width:1px;background:rgba(34,197,94,.2);flex:1;min-height:20px;margin:4px 0;align-self:center}
+  /* Activity row */
+  .act-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(34,197,94,.07)}
+  /* Tab */
+  .tab-nav{display:flex;gap:4px;background:rgba(0,0,0,.2);border-radius:14px;padding:4px;margin-bottom:24px}
+  .tnb{flex:1;padding:8px;border-radius:10px;background:transparent;border:none;color:rgba(255,255,255,.5);font-size:13px;font-weight:600;cursor:pointer;transition:.2s;font-family:'Noto Sans TC',sans-serif}
+  .tnb.active{background:rgba(34,197,94,.15);color:var(--g300)}
+  /* Edit form */
+  .form-input{width:100%;padding:10px 14px;background:rgba(13,61,35,.5);border:1px solid rgba(34,197,94,.2);border-radius:12px;color:#fff;font-size:14px;font-family:'Noto Sans TC',sans-serif;outline:none;transition:.2s}
+  .form-input:focus{border-color:rgba(34,197,94,.5)}
+  .form-label{color:rgba(255,255,255,.5);font-size:12px;margin-bottom:5px;display:block}
+  /* Modal */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+  .modal-overlay.show{display:flex}
+  .modal-box{background:var(--g800);border:1px solid rgba(34,197,94,.25);border-radius:24px;width:100%;max-width:480px;padding:28px;position:relative}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  .fade-up{animation:fadeUp .5s ease forwards}
+  .s1{animation-delay:.1s;opacity:0}.s2{animation-delay:.2s;opacity:0}.s3{animation-delay:.3s;opacity:0}
+  @media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.main{margin-left:0;padding:16px;padding-top:72px}}
+</style>
+</head>
+<body>
+<div class="bg-mesh"></div>
+<div class="grid-overlay"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div style="padding:24px 20px 16px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:32px">
+      <div style="width:36px;height:36px;background:linear-gradient(135deg,var(--g500),var(--teal));border-radius:10px;display:flex;align-items:center;justify-content:center"><span style="color:#fff;font-size:18px">🌿</span></div>
+      <span class="font-display" style="color:#fff;font-size:18px;font-weight:800">GreenStep</span>
+    </div>
+    <nav style="display:flex;flex-direction:column;gap:2px">
+      <a href="dashboard.html" class="nav-item"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</a>
+      <a href="events.html" class="nav-item"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>活動總覽</a>
+      <a href="missions.html" class="nav-item"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>任務中心</a>
+      <a href="leaderboard.html" class="nav-item"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="18 20 18 10"/><polyline points="12 20 12 4"/><polyline points="6 20 6 14"/></svg>排行榜</a>
+      <a href="esg.html" class="nav-item"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>ESG統計</a>
+      <a href="rewards.html" class="nav-item"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>獎勵商城</a>
+      <a href="profile.html" class="nav-item active"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>個人資料</a>
+    </nav>
+  </div>
+  <div style="margin-top:auto;padding:20px;border-top:1px solid rgba(34,197,94,.1)">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--g600),var(--g400));display:flex;align-items:center;justify-content:center;font-size:14px">👤</div>
+      <div><div style="color:#fff;font-size:13px;font-weight:600" id="sidebarUser">使用者</div><div style="color:var(--g300);font-size:11px" id="sidebarPts">0 GreenPoints</div></div>
+    </div>
+  </div>
+</aside>
+
+<!-- Mobile topbar -->
+<div style="display:none;position:fixed;top:0;left:0;right:0;z-index:49;background:rgba(8,32,17,.9);backdrop-filter:blur(16px);border-bottom:1px solid rgba(34,197,94,.12);padding:12px 16px;align-items:center;justify-content:space-between" id="mobileBar">
+  <button onclick="document.getElementById('sidebar').classList.toggle('open')" style="background:none;border:none;color:#fff;font-size:22px;cursor:pointer">☰</button>
+  <span class="font-display" style="color:#fff;font-weight:700">個人資料</span>
+  <div style="width:36px"></div>
+</div>
+
+<main class="main">
+  <!-- Profile Hero Card -->
+  <div class="fade-up glass" style="padding:28px;margin-bottom:24px;position:relative;overflow:hidden">
+    <!-- BG decoration -->
+    <div style="position:absolute;right:-40px;top:-40px;width:200px;height:200px;background:radial-gradient(circle,rgba(15,244,198,.1) 0%,transparent 70%);pointer-events:none"></div>
+    <div style="display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap">
+      <!-- Avatar -->
+      <div style="position:relative">
+        <div class="avatar-ring">
+          <div class="avatar-inner" id="avatarEl">👤</div>
+        </div>
+        <button onclick="openEditModal()" style="position:absolute;bottom:0;right:0;width:26px;height:26px;background:var(--g400);border:2px solid var(--g800);border-radius:50%;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center">✏️</button>
+      </div>
+      <!-- Info -->
+      <div style="flex:1;min-width:200px">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px">
+          <h2 id="profileName" class="font-display" style="color:#fff;font-size:22px;font-weight:800">張維倫</h2>
+          <div id="profileBadge" style="background:rgba(255,214,10,.15);border:1px solid rgba(255,214,10,.3);color:var(--yellow);font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px">Lv.8 碳守護者</div>
+        </div>
+        <div style="color:rgba(255,255,255,.5);font-size:13px;margin-bottom:2px" id="profileDept">永續推進部 · 資深專員</div>
+        <div style="color:rgba(255,255,255,.4);font-size:12px;margin-bottom:14px" id="profileCompany">imPR 永續顧問股份有限公司</div>
+        <!-- Level bar -->
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <span style="color:rgba(255,255,255,.4);font-size:11px;white-space:nowrap">Lv.8</span>
+          <div class="level-bar-track">
+            <div class="level-bar-fill" id="levelBar" style="width:72%"></div>
+          </div>
+          <span style="color:rgba(255,255,255,.4);font-size:11px;white-space:nowrap">Lv.9</span>
+        </div>
+        <div style="color:rgba(255,255,255,.3);font-size:11px;margin-bottom:16px">還需 <span style="color:var(--teal)">352</span> 點升級</div>
+        <!-- Stats row -->
+        <div style="display:flex;gap:20px;flex-wrap:wrap">
+          <div><div class="font-display" style="color:var(--teal);font-size:20px;font-weight:800">1,248</div><div style="color:rgba(255,255,255,.4);font-size:11px">總點數</div></div>
+          <div><div class="font-display" style="color:var(--g300);font-size:20px;font-weight:800">28.6</div><div style="color:rgba(255,255,255,.4);font-size:11px">本月減碳 kg</div></div>
+          <div><div class="font-display" style="color:var(--yellow);font-size:20px;font-weight:800">12</div><div style="color:rgba(255,255,255,.4);font-size:11px">活動參與</div></div>
+          <div><div class="font-display" style="color:var(--orange);font-size:20px;font-weight:800">18</div><div style="color:rgba(255,255,255,.4);font-size:11px">連續簽到天</div></div>
+        </div>
+      </div>
+      <!-- Edit button -->
+      <button onclick="openEditModal()" class="btn-ghost" style="padding:9px 18px;font-size:13px;align-self:flex-start">✏️ 編輯資料</button>
+    </div>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="tab-nav fade-up s1">
+    <button class="tnb active" id="tnOverview" onclick="switchTab('overview',this)">📊 總覽</button>
+    <button class="tnb" id="tnBadges" onclick="switchTab('badges',this)">🏅 徽章成就</button>
+    <button class="tnb" id="tnActivity" onclick="switchTab('activity',this)">📋 活動紀錄</button>
+    <button class="tnb" id="tnSettings" onclick="switchTab('settings',this)">⚙️ 設定</button>
+  </div>
+
+  <!-- Overview Panel -->
+  <div id="panelOverview">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px">
+      <!-- Carbon radar / chart -->
+      <div class="glass fade-up s1" style="padding:22px">
+        <div class="font-display" style="color:#fff;font-size:15px;font-weight:700;margin-bottom:4px">ESG 貢獻分佈</div>
+        <div style="color:rgba(255,255,255,.4);font-size:12px;margin-bottom:14px">各類別累積減碳量</div>
+        <div style="height:200px"><canvas id="radarChart"></canvas></div>
+      </div>
+      <!-- Monthly trend -->
+      <div class="glass fade-up s1" style="padding:22px">
+        <div class="font-display" style="color:#fff;font-size:15px;font-weight:700;margin-bottom:4px">月度點數趨勢</div>
+        <div style="color:rgba(255,255,255,.4);font-size:12px;margin-bottom:14px">近6個月累積點數</div>
+        <div style="height:200px"><canvas id="ptsTrendChart"></canvas></div>
+      </div>
+    </div>
+    <!-- Achievements summary -->
+    <div class="glass fade-up s2" style="padding:22px;margin-bottom:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div class="font-display" style="color:#fff;font-size:15px;font-weight:700">近期成就</div>
+        <button onclick="switchTab('badges',document.getElementById('tnBadges'))" class="btn-ghost" style="padding:6px 14px;font-size:12px">全部查看</button>
+      </div>
+      <div id="recentBadgesGrid" style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px"></div>
+    </div>
+    <!-- Carbon certificate -->
+    <div class="fade-up s2" style="background:linear-gradient(135deg,rgba(15,244,198,.08),rgba(34,197,94,.04));border:1px solid rgba(15,244,198,.2);border-radius:20px;padding:22px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px">
+      <div>
+        <div style="color:var(--teal);font-size:12px;font-weight:700;letter-spacing:.05em;margin-bottom:6px">🌳 個人減碳認證</div>
+        <div class="font-display" style="color:#fff;font-size:18px;font-weight:700">2026年已累積減少 186.4 kg CO₂e</div>
+        <div style="color:rgba(255,255,255,.5);font-size:13px;margin-top:4px">相當於種植 8 棵樹 · 排行榜 #12</div>
+      </div>
+      <button class="btn-primary" style="padding:11px 22px;font-size:13px">📜 下載認證書</button>
+    </div>
+  </div>
+
+  <!-- Badges Panel -->
+  <div id="panelBadges" style="display:none">
+    <!-- Progress -->
+    <div class="glass fade-up" style="padding:20px;margin-bottom:20px;display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+      <div style="text-align:center;min-width:80px">
+        <div class="font-display" style="color:var(--teal);font-size:32px;font-weight:800">14</div>
+        <div style="color:rgba(255,255,255,.4);font-size:12px">已獲得徽章</div>
+      </div>
+      <div style="flex:1;min-width:200px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+          <span style="color:rgba(255,255,255,.5);font-size:12px">徽章完成進度</span>
+          <span style="color:var(--g300);font-size:12px;font-weight:600">14 / 32</span>
+        </div>
+        <div style="height:8px;background:rgba(255,255,255,.08);border-radius:4px"><div style="height:8px;border-radius:4px;background:linear-gradient(90deg,var(--g400),var(--teal));width:43.75%"></div></div>
+      </div>
+    </div>
+    <!-- Badges grid -->
+    <div style="display:flex;flex-direction:column;gap:20px">
+      <div id="badgesESG"></div>
+      <div id="badgesHealth"></div>
+      <div id="badgesEvent"></div>
+      <div id="badgesHidden"></div>
+    </div>
+  </div>
+
+  <!-- Activity Panel -->
+  <div id="panelActivity" style="display:none">
+    <div class="glass fade-up" style="padding:22px">
+      <div class="font-display" style="color:#fff;font-size:15px;font-weight:700;margin-bottom:16px">參與活動紀錄</div>
+      <div id="activityList"></div>
+    </div>
+  </div>
+
+  <!-- Settings Panel -->
+  <div id="panelSettings" style="display:none">
+    <div class="glass fade-up" style="padding:24px;margin-bottom:18px">
+      <div class="font-display" style="color:#fff;font-size:15px;font-weight:700;margin-bottom:18px">通知設定</div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div><div style="color:#fff;font-size:14px">任務到期提醒</div><div style="color:rgba(255,255,255,.4);font-size:12px">任務結束前24小時通知</div></div>
+          <div onclick="toggleSwitch(this)" style="width:44px;height:24px;background:var(--g400);border-radius:12px;position:relative;cursor:pointer;transition:.3s"><div style="width:20px;height:20px;background:#fff;border-radius:50%;position:absolute;top:2px;right:2px;transition:.3s"></div></div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div><div style="color:#fff;font-size:14px">活動開始提醒</div><div style="color:rgba(255,255,255,.4);font-size:12px">活動開始前1小時通知</div></div>
+          <div onclick="toggleSwitch(this)" style="width:44px;height:24px;background:var(--g400);border-radius:12px;position:relative;cursor:pointer;transition:.3s"><div style="width:20px;height:20px;background:#fff;border-radius:50%;position:absolute;top:2px;right:2px;transition:.3s"></div></div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div><div style="color:#fff;font-size:14px">排行榜變動通知</div><div style="color:rgba(255,255,255,.4);font-size:12px">排名有變動時通知</div></div>
+          <div onclick="toggleSwitch(this)" style="width:44px;height:24px;background:rgba(255,255,255,.2);border-radius:12px;position:relative;cursor:pointer;transition:.3s"><div style="width:20px;height:20px;background:#fff;border-radius:50%;position:absolute;top:2px;left:2px;transition:.3s"></div></div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div><div style="color:#fff;font-size:14px">每日ESG小提示</div><div style="color:rgba(255,255,255,.4);font-size:12px">每天早上9點推送永續小知識</div></div>
+          <div onclick="toggleSwitch(this)" style="width:44px;height:24px;background:var(--g400);border-radius:12px;position:relative;cursor:pointer;transition:.3s"><div style="width:20px;height:20px;background:#fff;border-radius:50%;position:absolute;top:2px;right:2px;transition:.3s"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="glass fade-up s1" style="padding:24px;margin-bottom:18px">
+      <div class="font-display" style="color:#fff;font-size:15px;font-weight:700;margin-bottom:18px">帳號設定</div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <button class="btn-ghost" style="padding:12px;font-size:13px;text-align:left;border-radius:12px">🔗 連結 Google 帳號</button>
+        <button class="btn-ghost" style="padding:12px;font-size:13px;text-align:left;border-radius:12px">📱 LINE 通知設定</button>
+        <button class="btn-ghost" style="padding:12px;font-size:13px;text-align:left;border-radius:12px">📊 匯出個人ESG報告</button>
+        <button onclick="logout()" style="padding:12px;font-size:13px;text-align:left;border-radius:12px;background:rgba(255,107,53,.1);border:1px solid rgba(255,107,53,.3);color:var(--orange);cursor:pointer;font-weight:600">🚪 登出</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Edit Profile Modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal-box">
+    <button onclick="closeModal('editModal')" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,.1);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px">✕</button>
+    <h3 class="font-display" style="color:#fff;font-size:20px;font-weight:700;margin-bottom:20px">編輯個人資料</h3>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div>
+        <label class="form-label">姓名</label>
+        <input id="editName" class="form-input" value="張維倫">
+      </div>
+      <div>
+        <label class="form-label">部門</label>
+        <input id="editDept" class="form-input" value="永續推進部">
+      </div>
+      <div>
+        <label class="form-label">職稱</label>
+        <input id="editTitle" class="form-input" value="資深專員">
+      </div>
+      <div>
+        <label class="form-label">Email</label>
+        <input id="editEmail" class="form-input" value="weilun@impr.com.tw" type="email">
+      </div>
+      <div>
+        <label class="form-label">個人簡介</label>
+        <textarea id="editBio" class="form-input" rows="2" style="resize:vertical">永續行動派，相信每一個小行為都能改變世界。</textarea>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px">
+      <button onclick="closeModal('editModal')" class="btn-ghost" style="flex:1;padding:12px">取消</button>
+      <button onclick="saveProfile()" class="btn-primary" style="flex:2;padding:12px;font-size:14px">儲存變更</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" style="position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:rgba(34,197,94,.95);color:#fff;padding:12px 24px;border-radius:14px;font-size:14px;font-weight:600;z-index:200;transition:.4s;opacity:0;pointer-events:none">✅ 已儲存</div>
+
+<script src="config.js" onerror="console.warn('config.js missing')"></script>
+<script>
+// ==========================================
+// GreenStep Profile Page
+// ==========================================
+
+const BADGES = {
+  esg:[
+    {id:'b1',name:'ESG新手',icon:'🌱',desc:'完成首次ESG行為記錄',earned:true,rare:false},
+    {id:'b2',name:'綠色出行',icon:'🚌',desc:'搭乘大眾運輸30次',earned:true,rare:false},
+    {id:'b3',name:'無肉星期一',icon:'🥗',desc:'連續4週素食任務',earned:true,rare:false},
+    {id:'b4',name:'節能冠軍',icon:'💡',desc:'節能行為完成50次',earned:false,rare:false},
+    {id:'b5',name:'碳守護者',icon:'🛡️',desc:'累積減碳100kg',earned:true,rare:true},
+    {id:'b6',name:'地球英雄',icon:'🌍',desc:'累積減碳500kg',earned:false,rare:true},
+  ],
+  health:[
+    {id:'b7',name:'健步達人',icon:'🏃',desc:'單日步行10,000步',earned:true,rare:false},
+    {id:'b8',name:'鐵腿挑戰',icon:'🦵',desc:'累積步行100km',earned:true,rare:false},
+    {id:'b9',name:'健身達人',icon:'💪',desc:'連續30天運動',earned:false,rare:false},
+    {id:'b10',name:'早起鳥兒',icon:'🌅',desc:'連續7天早上活動打卡',earned:false,rare:false},
+  ],
+  event:[
+    {id:'b11',name:'活動達人',icon:'🎫',desc:'參加10場活動',earned:true,rare:false},
+    {id:'b12',name:'論壇專家',icon:'🎤',desc:'參加3場國際論壇',earned:true,rare:false},
+    {id:'b13',name:'志工之心',icon:'❤️',desc:'完成志工服務活動',earned:false,rare:false},
+    {id:'b14',name:'全勤英雄',icon:'🏆',desc:'月全勤簽到',earned:true,rare:true},
+  ],
+  hidden:[
+    {id:'b15',name:'?????',icon:'❓',desc:'???',earned:false,rare:true},
+    {id:'b16',name:'?????',icon:'❓',desc:'達成隱藏條件後解鎖',earned:false,rare:true},
+    {id:'b17',name:'深夜鬥士',icon:'🌙',desc:'在午夜12點完成任務',earned:true,rare:true},
+    {id:'b18',name:'?????',icon:'❓',desc:'???',earned:false,rare:true},
+  ],
+};
+
+const ACTIVITIES = [
+  {date:'2026-05-11',type:'checkin',icon:'✅',name:'ESG健走挑戰賽 簽到',pts:+50,carbon:2.5},
+  {date:'2026-05-11',type:'mission',icon:'🎯',name:'任務完成：步行10,000步',pts:+80,carbon:1.0},
+  {date:'2026-05-09',type:'event',icon:'🎫',name:'醫療永續論壇 報名',pts:+10,carbon:0},
+  {date:'2026-05-08',type:'mission',icon:'🎯',name:'任務完成：ESG學習打卡',pts:+40,carbon:0.8},
+  {date:'2026-05-05',type:'redeem',icon:'🏆',name:'兌換：GreenStep 聯名環保杯',pts:-350,carbon:0},
+  {date:'2026-05-03',type:'badge',icon:'🏅',name:'獲得徽章：碳守護者',pts:+100,carbon:0},
+  {date:'2026-04-28',type:'checkin',icon:'✅',name:'城市淨灘活動 簽到',pts:+50,carbon:5.5},
+  {date:'2026-04-20',type:'event',icon:'🎫',name:'員工健步挑戰賽 報名',pts:+10,carbon:0},
+];
+
+let radarChart, ptsTrendChart;
+
+// ==========================================
+// Init
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+  loadUserInfo();
+  renderOverviewCharts();
+  renderRecentBadges();
+  renderAllBadges();
+  renderActivity();
+  checkMobile();
+});
+
+function loadUserInfo() {
+  const u = JSON.parse(sessionStorage.getItem('gs_user') || '{}');
+  document.getElementById('sidebarUser').textContent = u.name || '張維倫';
+  document.getElementById('sidebarPts').textContent = (u.points || 1248).toLocaleString() + ' GreenPoints';
+}
+
+function checkMobile() {
+  const bar = document.getElementById('mobileBar');
+  if (bar) bar.style.display = window.innerWidth < 768 ? 'flex' : 'none';
+}
+
+// ==========================================
+// Tab Navigation
+// ==========================================
+function switchTab(tab, btn) {
+  ['panelOverview','panelBadges','panelActivity','panelSettings'].forEach(p => document.getElementById(p).style.display = 'none');
+  ['tnOverview','tnBadges','tnActivity','tnSettings'].forEach(b => document.getElementById(b).classList.remove('active'));
+  document.getElementById('panel'+tab.charAt(0).toUpperCase()+tab.slice(1)).style.display = 'block';
+  btn.classList.add('active');
+}
+
+// ==========================================
+// Charts
+// ==========================================
+function renderOverviewCharts() {
+  // Radar chart
+  const rCtx = document.getElementById('radarChart').getContext('2d');
+  radarChart = new Chart(rCtx, {
+    type:'radar',
+    data:{
+      labels:['交通','飲食','能源','廢棄物','用水','健康'],
+      datasets:[{
+        label:'個人',data:[85,70,60,45,30,90],
+        backgroundColor:'rgba(15,244,198,.15)',borderColor:'rgba(15,244,198,.7)',
+        pointBackgroundColor:'#0ff4c6',pointRadius:4,
+      },{
+        label:'公司平均',data:[60,55,50,40,35,65],
+        backgroundColor:'rgba(34,197,94,.08)',borderColor:'rgba(34,197,94,.3)',
+        pointBackgroundColor:'rgba(34,197,94,.5)',pointRadius:3,
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'rgba(255,255,255,.5)',font:{size:11}},position:'bottom'}},
+      scales:{r:{
+        grid:{color:'rgba(34,197,94,.1)'},
+        angleLines:{color:'rgba(34,197,94,.1)'},
+        ticks:{display:false,stepSize:25},
+        pointLabels:{color:'rgba(255,255,255,.5)',font:{size:11}},
+        min:0,max:100,
+      }}
+    }
+  });
+  // Line chart: points trend
+  const pCtx = document.getElementById('ptsTrendChart').getContext('2d');
+  ptsTrendChart = new Chart(pCtx, {
+    type:'bar',
+    data:{
+      labels:['12月','1月','2月','3月','4月','5月'],
+      datasets:[{
+        label:'點數',data:[380,520,460,780,640,1248],
+        backgroundColor:'rgba(34,197,94,.5)',
+        borderRadius:8,borderSkipped:false,
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(8,32,17,.9)',bodyColor:'var(--g300)'}},
+      scales:{
+        x:{grid:{color:'rgba(34,197,94,.07)'},ticks:{color:'rgba(255,255,255,.4)',font:{size:11}}},
+        y:{grid:{color:'rgba(34,197,94,.07)'},ticks:{color:'rgba(255,255,255,.4)',font:{size:11}},beginAtZero:true}
+      }
+    }
+  });
+}
+
+// ==========================================
+// Badges
+// ==========================================
+function renderRecentBadges() {
+  const all = Object.values(BADGES).flat().filter(b => b.earned).slice(0, 6);
+  document.getElementById('recentBadgesGrid').innerHTML = all.map(b => `
+    <div class="badge-item ${b.rare ? 'badge-glow' : ''}" title="${b.name}">
+      <span style="font-size:28px">${b.icon}</span>
+      <span style="color:rgba(255,255,255,.6);font-size:10px;text-align:center;line-height:1.2">${b.name}</span>
+      ${b.rare ? '<div style="position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;background:var(--yellow)"></div>' : ''}
+    </div>`).join('');
+}
+
+function renderAllBadges() {
+  const cats = {esg:'🌿 ESG 徽章',health:'💪 健康徽章',event:'🎫 活動徽章',hidden:'🔮 隱藏成就'};
+  Object.entries(BADGES).forEach(([cat, list]) => {
+    const el = document.getElementById('badges' + cat.charAt(0).toUpperCase() + cat.slice(1));
+    if (!el) return;
+    el.innerHTML = `
+      <div class="glass fade-up" style="padding:20px;margin-bottom:4px">
+        <div class="font-display" style="color:#fff;font-size:14px;font-weight:700;margin-bottom:14px">${cats[cat] || cat}</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px">
+          ${list.map(b => `
+          <div class="badge-item ${!b.earned?'locked':''} ${b.rare&&b.earned?'badge-glow':''}" title="${b.desc}">
+            <span style="font-size:32px">${b.icon}</span>
+            <span style="color:${b.earned?'rgba(255,255,255,.8)':'rgba(255,255,255,.3)'};font-size:11px;text-align:center;line-height:1.3">${b.name}</span>
+            ${b.rare ? '<div style="position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--yellow);opacity:' + (b.earned?'1':'.4') + '"></div>' : ''}
+            ${!b.earned ? '<div style="position:absolute;top:6px;left:6px;font-size:10px">🔒</div>' : ''}
+          </div>`).join('')}
+        </div>
+      </div>`;
+  });
+}
+
+// ==========================================
+// Activity
+// ==========================================
+function renderActivity() {
+  document.getElementById('activityList').innerHTML = ACTIVITIES.map(a => `
+    <div class="act-row">
+      <div style="width:38px;height:38px;border-radius:12px;background:rgba(34,197,94,.1);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${a.icon}</div>
+      <div style="flex:1;min-width:0">
+        <div style="color:#fff;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.name}</div>
+        <div style="color:rgba(255,255,255,.4);font-size:11px;margin-top:2px">${a.date}${a.carbon > 0 ? ` · -${a.carbon}kg CO₂` : ''}</div>
+      </div>
+      <div class="font-display" style="color:${a.pts>=0?'var(--g300)':'var(--orange)'};font-size:14px;font-weight:700;flex-shrink:0">${a.pts>=0?'+':''}${a.pts}</div>
+    </div>`).join('');
+}
+
+// ==========================================
+// Edit Profile
+// ==========================================
+function openEditModal() {
+  document.getElementById('editModal').classList.add('show');
+}
+
+function saveProfile() {
+  const name = document.getElementById('editName').value;
+  const dept = document.getElementById('editDept').value;
+  const title = document.getElementById('editTitle').value;
+  document.getElementById('profileName').textContent = name;
+  document.getElementById('profileDept').textContent = dept + ' · ' + title;
+  document.getElementById('sidebarUser').textContent = name;
+  closeModal('editModal');
+  showToast('✅ 個人資料已更新');
+}
+
+// ==========================================
+// Toggle Switch
+// ==========================================
+function toggleSwitch(el) {
+  const dot = el.querySelector('div');
+  const isOn = el.style.background.includes('var(--g400)') || el.style.background.includes('22c55e');
+  if (isOn) {
+    el.style.background = 'rgba(255,255,255,.2)';
+    dot.style.right = 'auto';
+    dot.style.left = '2px';
+  } else {
+    el.style.background = 'var(--g400)';
+    dot.style.left = 'auto';
+    dot.style.right = '2px';
+  }
+}
+
+// ==========================================
+// Logout
+// ==========================================
+function logout() {
+  sessionStorage.clear();
+  window.location.href = 'index.html';
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.opacity = '1';
+  t.style.transform = 'translateX(-50%) translateY(0)';
+  setTimeout(() => {t.style.opacity='0';t.style.transform='translateX(-50%) translateY(80px)';}, 2800);
+}
+</script>
+</body>
+</html>

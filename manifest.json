@@ -1,0 +1,84 @@
+{
+  "name": "GreenStep - ESG Gamification Platform",
+  "short_name": "GreenStep",
+  "description": "企業活動 ESG 遊戲化平台 - 結合任務、點數、排行榜與永續行動",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0a2e1a",
+  "theme_color": "#22c55e",
+  "orientation": "portrait-primary",
+  "lang": "zh-TW",
+  "categories": ["productivity", "lifestyle", "business"],
+  "icons": [
+    {
+      "src": "assets/icons/icon-72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "assets/icons/icon-96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "assets/icons/icon-128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "assets/icons/icon-144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "assets/screenshots/dashboard.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "GreenStep Dashboard"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "今日任務",
+      "short_name": "任務",
+      "description": "查看今日 ESG 任務",
+      "url": "./missions.html",
+      "icons": [{ "src": "assets/icons/icon-96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "排行榜",
+      "short_name": "排行",
+      "description": "查看積分排行榜",
+      "url": "./leaderboard.html",
+      "icons": [{ "src": "assets/icons/icon-96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "活動列表",
+      "short_name": "活動",
+      "description": "查看最新活動",
+      "url": "./events.html",
+      "icons": [{ "src": "assets/icons/icon-96.png", "sizes": "96x96" }]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}

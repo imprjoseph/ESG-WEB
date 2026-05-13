@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GreenStep | 活動總覽</title>
+<link rel="manifest" href="manifest.json">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --g900:#0a2e1a;--g800:#0d3d23;--g700:#0f4d2c;--g600:#146b38;
+    --g500:#1a8a46;--g400:#22c55e;--g300:#4ade80;--g200:#86efac;
+    --teal:#0ff4c6;--yellow:#ffd60a;--orange:#ff6b35;
+    --glass:rgba(10,46,26,0.6);--glassL:rgba(255,255,255,0.05);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Noto Sans TC',sans-serif;background:var(--g900);min-height:100vh;overflow-x:hidden}
+  .font-display{font-family:'Syne',sans-serif}
+  .bg-mesh{position:fixed;inset:0;z-index:0;background:
+    radial-gradient(ellipse 80% 60% at 20% 10%,rgba(26,138,70,.22) 0%,transparent 60%),
+    radial-gradient(ellipse 60% 80% at 80% 80%,rgba(15,244,198,.1) 0%,transparent 50%)}
+  .grid-overlay{position:fixed;inset:0;z-index:0;
+    background-image:linear-gradient(rgba(26,138,70,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(26,138,70,.06) 1px,transparent 1px);
+    background-size:48px 48px;mask-image:radial-gradient(ellipse 90% 90% at 50% 50%,black 40%,transparent 100%)}
+  .glass{background:rgba(13,61,35,.55);backdrop-filter:blur(24px);border:1px solid rgba(34,197,94,.18);border-radius:20px}
+  .glass-sm{background:rgba(13,61,35,.4);backdrop-filter:blur(16px);border:1px solid rgba(34,197,94,.14);border-radius:14px}
+  /* Sidebar */
+  .sidebar{width:240px;min-height:100vh;background:rgba(8,32,17,.9);backdrop-filter:blur(24px);border-right:1px solid rgba(34,197,94,.12);position:fixed;left:0;top:0;z-index:50;display:flex;flex-direction:column;transition:.3s}
+  .nav-item{display:flex;align-items:center;gap:12px;padding:12px 20px;border-radius:12px;cursor:pointer;transition:.2s;color:rgba(255,255,255,.5);font-size:14px;margin:2px 8px}
+  .nav-item:hover,.nav-item.active{background:rgba(34,197,94,.12);color:var(--g300)}
+  .nav-item.active{border-left:3px solid var(--g400)}
+  .nav-dot{width:8px;height:8px;border-radius:50%;background:var(--g400)}
+  /* Main layout */
+  .main{margin-left:240px;padding:28px;min-height:100vh;position:relative;z-index:1}
+  /* Event card */
+  .event-card{transition:.3s;cursor:pointer}
+  .event-card:hover{transform:translateY(-4px)}
+  .event-card:hover .card-body{border-color:rgba(34,197,94,.45)}
+  .card-body{background:rgba(13,61,35,.55);backdrop-filter:blur(20px);border:1px solid rgba(34,197,94,.18);border-radius:18px;overflow:hidden;transition:.3s}
+  .event-banner{width:100%;height:160px;object-fit:cover;background:linear-gradient(135deg,var(--g700),var(--g600));position:relative;overflow:hidden}
+  .badge-tag{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:.03em}
+  /* Category filter */
+  .filter-btn{padding:8px 18px;border-radius:30px;font-size:13px;cursor:pointer;transition:.2s;border:1px solid rgba(34,197,94,.25);color:rgba(255,255,255,.6)}
+  .filter-btn:hover,.filter-btn.active{background:rgba(34,197,94,.15);border-color:var(--g400);color:var(--g300)}
+  /* Modal */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+  .modal-overlay.show{display:flex}
+  .modal-box{background:var(--g800);border:1px solid rgba(34,197,94,.25);border-radius:24px;width:100%;max-width:680px;max-height:90vh;overflow-y:auto;position:relative}
+  .modal-box::-webkit-scrollbar{width:4px}
+  .modal-box::-webkit-scrollbar-thumb{background:var(--g600);border-radius:4px}
+  /* Progress ring */
+  .progress-ring circle{transition:stroke-dashoffset .6s ease;transform-origin:50% 50%;transform:rotate(-90deg)}
+  /* Map placeholder */
+  .map-box{background:linear-gradient(135deg,rgba(13,61,35,.8),rgba(9,39,20,.9));border:1px solid rgba(34,197,94,.2);border-radius:14px;overflow:hidden;position:relative}
+  /* Timeline */
+  .timeline-item::before{content:'';position:absolute;left:18px;top:36px;bottom:-8px;width:1px;background:rgba(34,197,94,.2)}
+  .timeline-item:last-child::before{display:none}
+  /* Countdown */
+  .cdown-box{background:rgba(15,244,198,.08);border:1px solid rgba(15,244,198,.2);border-radius:12px;padding:10px 16px;text-align:center}
+  /* Checkin btn */
+  .btn-primary{background:linear-gradient(135deg,var(--g500),var(--g400));color:#fff;font-weight:700;border:none;border-radius:14px;cursor:pointer;transition:.2s;font-family:'Noto Sans TC',sans-serif}
+  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(34,197,94,.35)}
+  .btn-ghost{background:transparent;border:1px solid rgba(34,197,94,.3);color:var(--g300);font-weight:600;border-radius:14px;cursor:pointer;transition:.2s;font-family:'Noto Sans TC',sans-serif}
+  .btn-ghost:hover{background:rgba(34,197,94,.08)}
+  /* QR overlay */
+  .qr-panel{background:rgba(8,32,17,.95);border:1px solid rgba(15,244,198,.3);border-radius:20px;padding:28px;text-align:center}
+  /* Scroll */
+  html{scroll-behavior:smooth}
+  /* Swipe carousel */
+  .banner-carousel{overflow:hidden;border-radius:20px;position:relative}
+  .banner-track{display:flex;transition:transform .5s cubic-bezier(.4,0,.2,1)}
+  .banner-slide{min-width:100%;height:220px;position:relative;overflow:hidden}
+  /* Mobile */
+  @media(max-width:768px){
+    .sidebar{transform:translateX(-100%)}
+    .sidebar.open{transform:translateX(0)}
+    .main{margin-left:0;padding:16px}
+  }
+  /* Animations */
+  @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  .fade-up{animation:fadeUp .5s ease forwards}
+  .stagger-1{animation-delay:.1s;opacity:0}
+  .stagger-2{animation-delay:.2s;opacity:0}
+  .stagger-3{animation-delay:.3s;opacity:0}
+  /* Glow */
+  .glow-teal{box-shadow:0 0 20px rgba(15,244,198,.25)}
+  .text-teal{color:var(--teal)}
+  .text-g400{color:var(--g400)}
+  .text-g300{color:var(--g300)}
+  .text-yellow{color:var(--yellow)}
+  .text-orange{color:var(--orange)}
+  /* Status dots */
+  .dot-live{width:8px;height:8px;border-radius:50%;background:#ef4444;animation:blink 1.2s ease-in-out infinite}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+  .dot-upcoming{width:8px;height:8px;border-radius:50%;background:var(--yellow)}
+  .dot-ended{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.3)}
+</style>
+</head>
+<body>
+<div class="bg-mesh"></div>
+<div class="grid-overlay"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div style="padding:24px 20px 16px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:32px">
+      <div style="width:36px;height:36px;background:linear-gradient(135deg,var(--g500),var(--teal));border-radius:10px;display:flex;align-items:center;justify-content:center">
+        <span style="color:#fff;font-size:18px">🌿</span>
+      </div>
+      <span class="font-display" style="color:#fff;font-size:18px;font-weight:800">GreenStep</span>
+    </div>
+    <nav style="display:flex;flex-direction:column;gap:2px">
+      <a href="dashboard.html" class="nav-item">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </a>
+      <a href="events.html" class="nav-item active">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        活動總覽
+      </a>
+      <a href="missions.html" class="nav-item">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        任務中心
+      </a>
+      <a href="leaderboard.html" class="nav-item">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="18 20 18 10"/><polyline points="12 20 12 4"/><polyline points="6 20 6 14"/></svg>
+        排行榜
+      </a>
+      <a href="esg.html" class="nav-item">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        ESG統計
+      </a>
+      <a href="rewards.html" class="nav-item">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
+        獎勵商城
+      </a>
+      <a href="profile.html" class="nav-item">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        個人資料
+      </a>
+    </nav>
+  </div>
+  <div style="margin-top:auto;padding:20px;border-top:1px solid rgba(34,197,94,.1)">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--g600),var(--g400));display:flex;align-items:center;justify-content:center;font-size:14px">👤</div>
+      <div>
+        <div style="color:#fff;font-size:13px;font-weight:600" id="sidebarUser">使用者</div>
+        <div style="color:var(--g300);font-size:11px" id="sidebarPts">0 GreenPoints</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- Mobile topbar -->
+<div style="display:none;position:fixed;top:0;left:0;right:0;z-index:49;background:rgba(8,32,17,.9);backdrop-filter:blur(16px);border-bottom:1px solid rgba(34,197,94,.12);padding:12px 16px;align-items:center;justify-content:space-between" id="mobileBar">
+  <button onclick="toggleSidebar()" style="background:none;border:none;color:#fff;font-size:22px;cursor:pointer">☰</button>
+  <span class="font-display" style="color:#fff;font-weight:700">活動總覽</span>
+  <div id="mobileNotif" style="width:36px;height:36px;background:rgba(34,197,94,.12);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer">🔔</div>
+</div>
+
+<!-- Main -->
+<main class="main" id="main" style="padding-top:20px">
+
+  <!-- Hero Banner Carousel -->
+  <div class="banner-carousel fade-up" style="margin-bottom:28px">
+    <div class="banner-track" id="bannerTrack">
+      <!-- Slide 1 -->
+      <div class="banner-slide" style="background:linear-gradient(135deg,#0a2e1a 0%,#0f4d2c 50%,rgba(15,244,198,.15) 100%)">
+        <div style="position:absolute;inset:0;display:flex;align-items:center;padding:32px">
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+              <div class="dot-live"></div>
+              <span style="color:#ef4444;font-size:12px;font-weight:700;letter-spacing:.05em">LIVE NOW</span>
+            </div>
+            <div class="font-display" style="color:#fff;font-size:26px;font-weight:800;line-height:1.2;margin-bottom:8px">2026 企業永續<br>ESG健走挑戰賽</div>
+            <div style="color:var(--teal);font-size:13px">📍台北大安森林公園 · 2026.05.11</div>
+          </div>
+        </div>
+        <div style="position:absolute;right:24px;bottom:24px">
+          <button onclick="openCheckinModal()" class="btn-primary" style="padding:10px 20px;font-size:13px">立即簽到 →</button>
+        </div>
+        <!-- Decorative -->
+        <div style="position:absolute;right:-20px;top:-20px;width:180px;height:180px;background:radial-gradient(circle,rgba(15,244,198,.15) 0%,transparent 70%);border-radius:50%"></div>
+      </div>
+      <!-- Slide 2 -->
+      <div class="banner-slide" style="background:linear-gradient(135deg,#0a2520 0%,#0d3d2b 50%,rgba(255,214,10,.08) 100%)">
+        <div style="position:absolute;inset:0;display:flex;align-items:center;padding:32px">
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+              <div class="dot-upcoming"></div>
+              <span style="color:var(--yellow);font-size:12px;font-weight:700;letter-spacing:.05em">即將開始 · 3天後</span>
+            </div>
+            <div class="font-display" style="color:#fff;font-size:26px;font-weight:800;line-height:1.2;margin-bottom:8px">2026 醫療永續<br>國際論壇</div>
+            <div style="color:var(--g300);font-size:13px">📍台北國際會議中心 · 2026.05.14</div>
+          </div>
+        </div>
+        <div style="position:absolute;right:24px;bottom:24px">
+          <button onclick="openEventDetail('ev002')" class="btn-primary" style="padding:10px 20px;font-size:13px">立即報名 →</button>
+        </div>
+      </div>
+      <!-- Slide 3 -->
+      <div class="banner-slide" style="background:linear-gradient(135deg,#0d2b1a 0%,#0f3e26 50%,rgba(255,107,53,.08) 100%)">
+        <div style="position:absolute;inset:0;display:flex;align-items:center;padding:32px">
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+              <span style="background:rgba(255,107,53,.2);color:var(--orange);font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px">本週挑戰</span>
+            </div>
+            <div class="font-display" style="color:#fff;font-size:26px;font-weight:800;line-height:1.2;margin-bottom:8px">員工健康促進<br>萬步挑戰賽</div>
+            <div style="color:var(--g300);font-size:13px">🏃 全公司參與 · 累積點數 · 豐富好禮</div>
+          </div>
+        </div>
+        <div style="position:absolute;right:24px;bottom:24px">
+          <button onclick="openEventDetail('ev003')" class="btn-primary" style="padding:10px 20px;font-size:13px">查看詳情 →</button>
+        </div>
+      </div>
+    </div>
+    <!-- Dots -->
+    <div style="position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:6px" id="bannerDots">
+      <div onclick="goBanner(0)" style="width:20px;height:4px;border-radius:2px;background:var(--teal);cursor:pointer;transition:.3s" id="dot0"></div>
+      <div onclick="goBanner(1)" style="width:8px;height:4px;border-radius:2px;background:rgba(255,255,255,.3);cursor:pointer;transition:.3s" id="dot1"></div>
+      <div onclick="goBanner(2)" style="width:8px;height:4px;border-radius:2px;background:rgba(255,255,255,.3);cursor:pointer;transition:.3s" id="dot2"></div>
+    </div>
+  </div>
+
+  <!-- Filter + Search Row -->
+  <div class="fade-up stagger-1" style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:24px">
+    <!-- Search -->
+    <div style="flex:1;min-width:200px;position:relative">
+      <svg style="position:absolute;left:14px;top:50%;transform:translateY(-50%);opacity:.5" width="16" height="16" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="searchInput" oninput="filterEvents()" placeholder="搜尋活動名稱、地點…" style="width:100%;padding:10px 14px 10px 40px;background:rgba(13,61,35,.5);border:1px solid rgba(34,197,94,.2);border-radius:12px;color:#fff;font-size:13px;font-family:'Noto Sans TC',sans-serif;outline:none" onkeyup="filterEvents()">
+    </div>
+    <!-- Category Filters -->
+    <div style="display:flex;flex-wrap:wrap;gap:8px">
+      <button class="filter-btn active" onclick="setFilter(this,'all')">全部</button>
+      <button class="filter-btn" onclick="setFilter(this,'walk')">🏃 健走</button>
+      <button class="filter-btn" onclick="setFilter(this,'forum')">🎤 論壇</button>
+      <button class="filter-btn" onclick="setFilter(this,'esg')">🌿 ESG</button>
+      <button class="filter-btn" onclick="setFilter(this,'training')">📚 教育訓練</button>
+      <button class="filter-btn" onclick="setFilter(this,'employee')">👥 員工活動</button>
+    </div>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="fade-up stagger-2" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px">
+    <div class="glass-sm" style="padding:16px;text-align:center">
+      <div style="font-size:24px;font-weight:800;color:var(--teal)" class="font-display">12</div>
+      <div style="color:rgba(255,255,255,.5);font-size:12px;margin-top:2px">進行中</div>
+    </div>
+    <div class="glass-sm" style="padding:16px;text-align:center">
+      <div style="font-size:24px;font-weight:800;color:var(--yellow)" class="font-display">8</div>
+      <div style="color:rgba(255,255,255,.5);font-size:12px;margin-top:2px">即將開始</div>
+    </div>
+    <div class="glass-sm" style="padding:16px;text-align:center">
+      <div style="font-size:24px;font-weight:800;color:var(--g300)" class="font-display">3</div>
+      <div style="color:rgba(255,255,255,.5);font-size:12px;margin-top:2px">我已報名</div>
+    </div>
+    <div class="glass-sm" style="padding:16px;text-align:center">
+      <div style="font-size:24px;font-weight:800;color:var(--orange)" class="font-display">1,248</div>
+      <div style="color:rgba(255,255,255,.5);font-size:12px;margin-top:2px">總參與人次</div>
+    </div>
+  </div>
+
+  <!-- Section: 進行中活動 -->
+  <div class="fade-up stagger-2" style="margin-bottom:32px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <div class="dot-live"></div>
+      <h2 class="font-display" style="color:#fff;font-size:18px;font-weight:700">進行中活動</h2>
+    </div>
+    <div id="liveGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px"></div>
+  </div>
+
+  <!-- Section: 即將開始 -->
+  <div class="fade-up stagger-3" style="margin-bottom:32px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <div class="dot-upcoming"></div>
+      <h2 class="font-display" style="color:#fff;font-size:18px;font-weight:700">即將開始</h2>
+    </div>
+    <div id="upcomingGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px"></div>
+  </div>
+
+  <!-- Section: 我的活動 -->
+  <div class="fade-up stagger-3" style="margin-bottom:32px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <span style="color:var(--g300)">✓</span>
+      <h2 class="font-display" style="color:#fff;font-size:18px;font-weight:700">我的活動</h2>
+    </div>
+    <div id="myGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px"></div>
+  </div>
+</main>
+
+<!-- Event Detail Modal -->
+<div class="modal-overlay" id="eventModal">
+  <div class="modal-box" style="max-width:720px">
+    <!-- Close -->
+    <button onclick="closeModal('eventModal')" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,.1);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;z-index:10">✕</button>
+    <!-- Banner -->
+    <div id="modalBanner" style="height:200px;background:linear-gradient(135deg,var(--g700),var(--g600));position:relative;overflow:hidden">
+      <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:24px;background:linear-gradient(transparent,rgba(0,0,0,.6))">
+        <div id="modalCats" style="display:flex;gap:8px;margin-bottom:8px"></div>
+        <h2 id="modalTitle" class="font-display" style="color:#fff;font-size:22px;font-weight:800"></h2>
+        <div id="modalMeta" style="color:rgba(255,255,255,.7);font-size:13px;margin-top:4px"></div>
+      </div>
+    </div>
+    <!-- Tabs -->
+    <div style="display:flex;border-bottom:1px solid rgba(34,197,94,.15);padding:0 24px">
+      <button class="modal-tab active-tab" onclick="switchTab('info')" id="tabInfo" style="padding:14px 18px;background:none;border:none;color:var(--g300);font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid var(--g400)">活動資訊</button>
+      <button class="modal-tab" onclick="switchTab('agenda')" id="tabAgenda" style="padding:14px 18px;background:none;border:none;color:rgba(255,255,255,.5);font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent">議程</button>
+      <button class="modal-tab" onclick="switchTab('map')" id="tabMap" style="padding:14px 18px;background:none;border:none;color:rgba(255,255,255,.5);font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent">地圖</button>
+      <button class="modal-tab" onclick="switchTab('missions')" id="tabMissions" style="padding:14px 18px;background:none;border:none;color:rgba(255,255,255,.5);font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent">活動任務</button>
+    </div>
+    <!-- Tab Panels -->
+    <div id="panelInfo" style="padding:24px;display:block">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px">
+        <div style="background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.15);border-radius:12px;padding:14px">
+          <div style="color:rgba(255,255,255,.5);font-size:11px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">活動日期</div>
+          <div id="modalDate" style="color:#fff;font-size:14px;font-weight:600"></div>
+        </div>
+        <div style="background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.15);border-radius:12px;padding:14px">
+          <div style="color:rgba(255,255,255,.5);font-size:11px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">活動地點</div>
+          <div id="modalLocation" style="color:#fff;font-size:14px;font-weight:600"></div>
+        </div>
+        <div style="background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.15);border-radius:12px;padding:14px">
+          <div style="color:rgba(255,255,255,.5);font-size:11px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">可獲點數</div>
+          <div id="modalPoints" style="color:var(--teal);font-size:14px;font-weight:700"></div>
+        </div>
+        <div style="background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.15);border-radius:12px;padding:14px">
+          <div style="color:rgba(255,255,255,.5);font-size:11px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">已報名人數</div>
+          <div id="modalAttendees" style="color:var(--yellow);font-size:14px;font-weight:700"></div>
+        </div>
+      </div>
+      <!-- Countdown -->
+      <div id="countdownBox" style="margin-bottom:20px;display:none">
+        <div style="color:rgba(255,255,255,.5);font-size:12px;margin-bottom:8px">距離活動開始</div>
+        <div style="display:flex;gap:10px">
+          <div class="cdown-box"><div id="cdDays" class="font-display" style="color:var(--teal);font-size:22px;font-weight:800">00</div><div style="color:rgba(255,255,255,.5);font-size:10px">天</div></div>
+          <div class="cdown-box"><div id="cdHours" class="font-display" style="color:var(--teal);font-size:22px;font-weight:800">00</div><div style="color:rgba(255,255,255,.5);font-size:10px">時</div></div>
+          <div class="cdown-box"><div id="cdMins" class="font-display" style="color:var(--teal);font-size:22px;font-weight:800">00</div><div style="color:rgba(255,255,255,.5);font-size:10px">分</div></div>
+          <div class="cdown-box"><div id="cdSecs" class="font-display" style="color:var(--teal);font-size:22px;font-weight:800">00</div><div style="color:rgba(255,255,255,.5);font-size:10px">秒</div></div>
+        </div>
+      </div>
+      <!-- Description -->
+      <div id="modalDesc" style="color:rgba(255,255,255,.7);font-size:14px;line-height:1.8;margin-bottom:20px"></div>
+      <!-- ESG badges -->
+      <div id="modalEsgBadges" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px"></div>
+      <!-- Action buttons -->
+      <div id="modalActions" style="display:flex;gap:12px;flex-wrap:wrap"></div>
+    </div>
+    <!-- Agenda Panel -->
+    <div id="panelAgenda" style="padding:24px;display:none">
+      <div id="agendaList"></div>
+    </div>
+    <!-- Map Panel -->
+    <div id="panelMap" style="padding:24px;display:none">
+      <div class="map-box" style="height:280px;display:flex;align-items:center;justify-content:center;margin-bottom:16px">
+        <div style="text-align:center">
+          <div style="font-size:48px;margin-bottom:12px">📍</div>
+          <div style="color:#fff;font-size:15px;font-weight:600" id="mapLocationName"></div>
+          <div style="color:rgba(255,255,255,.5);font-size:12px;margin-top:4px" id="mapAddress"></div>
+          <button onclick="openGoogleMaps()" class="btn-ghost" style="margin-top:16px;padding:8px 20px;font-size:13px">在 Google Maps 開啟</button>
+        </div>
+      </div>
+      <div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15);border-radius:12px;padding:14px">
+        <div style="color:var(--g300);font-size:13px;font-weight:600;margin-bottom:6px">交通資訊</div>
+        <div id="mapTransport" style="color:rgba(255,255,255,.6);font-size:13px;line-height:1.8"></div>
+      </div>
+    </div>
+    <!-- Missions Panel -->
+    <div id="panelMissions" style="padding:24px;display:none">
+      <div id="eventMissionList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Check-in Modal -->
+<div class="modal-overlay" id="checkinModal">
+  <div class="modal-box" style="max-width:420px;padding:28px;text-align:center">
+    <button onclick="closeModal('checkinModal')" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,.1);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px">✕</button>
+    <div style="margin-bottom:20px">
+      <div style="font-size:40px;margin-bottom:8px">📲</div>
+      <h3 class="font-display" style="color:#fff;font-size:20px;font-weight:700">活動簽到</h3>
+      <div style="color:rgba(255,255,255,.5);font-size:13px;margin-top:6px">請選擇簽到方式</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <button onclick="startQRCheckin()" class="btn-primary" style="padding:14px;font-size:14px">📷 掃描QRCode簽到</button>
+      <button onclick="startGPSCheckin()" class="btn-ghost" style="padding:14px;font-size:14px">📍 GPS定位簽到</button>
+      <button onclick="manualCheckin()" class="btn-ghost" style="padding:14px;font-size:14px">✋ 手動簽到（輸入代碼）</button>
+    </div>
+  </div>
+</div>
+
+<!-- QR Scan Modal -->
+<div class="modal-overlay" id="qrModal">
+  <div class="modal-box" style="max-width:380px;padding:0;overflow:hidden">
+    <div style="padding:20px;text-align:center;border-bottom:1px solid rgba(34,197,94,.15)">
+      <h3 class="font-display" style="color:#fff;font-size:18px;font-weight:700">掃描QRCode</h3>
+    </div>
+    <div class="qr-panel" style="border-radius:0;border:none">
+      <div id="qrReader" style="width:100%;border-radius:12px;overflow:hidden"></div>
+      <div id="qrResult" style="margin-top:16px;color:var(--teal);font-size:14px;font-weight:600;min-height:24px"></div>
+    </div>
+    <div style="padding:16px;display:flex;gap:10px">
+      <button onclick="stopQRScan()" class="btn-ghost" style="flex:1;padding:12px;font-size:14px">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- Success Toast -->
+<div id="toast" style="position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:rgba(34,197,94,.95);color:#fff;padding:12px 24px;border-radius:14px;font-size:14px;font-weight:600;z-index:200;transition:.4s;opacity:0;pointer-events:none">✓ 簽到成功！獲得 +50 點數</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+<script src="config.js" onerror="console.warn('config.js not found, using defaults')"></script>
+<script>
+// ==========================================
+// GreenStep Events Page
+// ==========================================
+
+// Config fallback
+if (typeof GS_CONFIG === 'undefined') {
+  var GS_CONFIG = {
+    GAS_URL: '',
+    EVENT_REG_URL: '',
+    GOOGLE_MAPS_KEY: ''
+  };
+}
+
+// Demo event data
+const EVENTS = [
+  {
+    id:'ev001',status:'live',type:'walk',
+    title:'2026 企業永續 ESG健走挑戰賽',
+    date:'2026-05-11',endDate:'2026-05-11',
+    time:'08:00 – 17:00',
+    location:'台北大安森林公園',
+    address:'台北市大安區新生南路二段1號',
+    lat:25.0297,lng:121.5345,
+    attendees:328,maxAttendees:500,
+    points:150,carbon:2.5,
+    cats:['esg','walk','health'],
+    desc:'全公司健走ESG挑戰活動！步行累積點數、完成環保任務、爭奪部門冠軍獎盃。結合減碳教育、健康促進與趣味競賽，打造最強ESG文化體驗。',
+    esgTags:['🌿 減碳行動','🚶 健康步行','♻️ 零廢棄'],
+    transport:'地鐵大安站2號出口步行5分鐘；公車安和路站下車',
+    agenda:[
+      {time:'08:00',title:'報到 & 物資領取',desc:'憑QRCode報到，領取活動背心與手環'},
+      {time:'08:30',title:'開幕儀式 & ESG宣言',desc:'主辦單位致詞，各部門代表宣誓ESG承諾'},
+      {time:'09:00',title:'健走路線A開始（10km）',desc:'大安森林公園環繞路線，設5個任務打卡站'},
+      {time:'09:30',title:'健走路線B開始（5km）',desc:'親子友善路線，適合攜家帶眷'},
+      {time:'12:00',title:'午餐 & 休息區',desc:'環保餐盒、零廢棄飲食站'},
+      {time:'14:00',title:'ESG體驗工作坊',desc:'4個體驗攤位：太陽能、廢棄物分類、碳計算、永續手作'},
+      {time:'16:00',title:'成果統計 & 頒獎典禮',desc:'公布個人、部門、企業排行榜，頒發獎項'},
+      {time:'17:00',title:'賦歸',desc:''}
+    ],
+    missions:['步行10,000步','完成3個ESG打卡站','拍攝廢棄物分類照','分享活動至社群']
+  },
+  {
+    id:'ev002',status:'upcoming',type:'forum',
+    title:'2026 醫療永續國際論壇',
+    date:'2026-05-14',endDate:'2026-05-15',
+    time:'09:00 – 18:00',
+    location:'台北國際會議中心',
+    address:'台北市信義區信義路五段1號',
+    lat:25.0364,lng:121.5654,
+    attendees:412,maxAttendees:600,
+    points:200,carbon:1.2,
+    cats:['forum','esg'],
+    desc:'聚焦醫療體系永續轉型，邀請國際ESG專家、醫院管理者與政策制定者，共同探討醫療廢棄物減量、碳中和醫院建設與數位化永續管理。',
+    esgTags:['🏥 醫療永續','📊 碳中和','🌍 國際交流'],
+    transport:'台北小巨蛋站3號出口；MRT信義線市政府站步行10分鐘',
+    agenda:[
+      {time:'09:00',title:'報到 & 展覽開放',desc:''},
+      {time:'10:00',title:'開幕主旨演講：醫療零碳未來',desc:''},
+      {time:'11:00',title:'Panel 1：醫院ESG報告實務',desc:''},
+      {time:'13:00',title:'午餐交流 & 展示區',desc:''},
+      {time:'14:30',title:'Panel 2：數位化與永續管理',desc:''},
+      {time:'16:00',title:'工作坊：碳排計算實作',desc:''},
+      {time:'17:30',title:'閉幕 & 晚宴',desc:''}
+    ],
+    missions:['完成報到','參加2場以上Panel','完成問卷填寫','ESG學習打卡']
+  },
+  {
+    id:'ev003',status:'upcoming',type:'employee',
+    title:'員工健康促進萬步挑戰賽',
+    date:'2026-05-18',endDate:'2026-05-31',
+    time:'全天候 兩週賽制',
+    location:'全公司（遠端參與）',
+    address:'線上活動',
+    lat:25.0330,lng:121.5654,
+    attendees:156,maxAttendees:300,
+    points:300,carbon:4.0,
+    cats:['employee','walk','health'],
+    desc:'兩週健步競賽！每日記錄步數、完成健康任務、帶動部門夥伴一起動起來。獎品豐厚，個人與部門雙軌制排行榜。',
+    esgTags:['🏃 健康步行','💪 個人挑戰','🏆 部門競賽'],
+    transport:'線上活動，透過App追蹤步數',
+    agenda:[
+      {time:'Day 1',title:'挑戰賽正式開始',desc:''},
+      {time:'每日',title:'每日步數同步',desc:'透過健康App自動同步'},
+      {time:'Week 1 末',title:'中期排行公布',desc:''},
+      {time:'Day 14',title:'最終統計',desc:''},
+      {time:'Day 15',title:'頒獎直播',desc:''}
+    ],
+    missions:['每日步行5,000步','完成7天連續打卡','達成10,000步一天','帶領部門累積最高步數']
+  },
+  {
+    id:'ev004',status:'live',type:'esg',
+    title:'2026 企業ESG教育訓練',
+    date:'2026-05-11',endDate:'2026-05-11',
+    time:'13:00 – 17:00',
+    location:'台北市中山區辦公室 B1會議室',
+    address:'台北市中山區',
+    lat:25.0525,lng:121.5236,
+    attendees:48,maxAttendees:60,
+    points:120,carbon:0.8,
+    cats:['training','esg'],
+    desc:'ESG基礎認知與實務操作培訓，涵蓋碳盤查、ESG報告撰寫、永續指標設定。適合HR、CSR專員、主管參加。',
+    esgTags:['📚 ESG培訓','📋 碳盤查','📊 永續報告'],
+    transport:'MRT中山站步行3分鐘',
+    agenda:[
+      {time:'13:00',title:'ESG概論 & 台灣法規更新',desc:''},
+      {time:'14:00',title:'碳排盤查實作演練',desc:''},
+      {time:'15:00',title:'ESG報告撰寫工作坊',desc:''},
+      {time:'16:30',title:'Q&A & 結業',desc:''}
+    ],
+    missions:['完成報到','課程簽到','提交ESG學習心得']
+  },
+  {
+    id:'ev005',status:'my',type:'walk',
+    title:'城市淨灘 x 海洋永續行動',
+    date:'2026-05-25',endDate:'2026-05-25',
+    time:'07:00 – 12:00',
+    location:'淡水老街沙灘',
+    address:'新北市淡水區',
+    lat:25.1700,lng:121.4489,
+    attendees:89,maxAttendees:150,
+    points:180,carbon:5.5,
+    cats:['esg','walk'],
+    desc:'親子友善淨灘活動！收集垃圾換點數，每袋廢棄物=50點。ESG家庭組、企業組雙軌制，完成任務解鎖海洋守護者徽章。',
+    esgTags:['🌊 海洋保育','♻️ 廢棄物清除','👨‍👩‍👧 親子友善'],
+    transport:'淡水MRT站搭接駁車（免費）',
+    agenda:[
+      {time:'07:00',title:'集合報到',desc:''},
+      {time:'07:30',title:'環保教育 & 分組',desc:''},
+      {time:'08:00',title:'淨灘開始',desc:''},
+      {time:'10:30',title:'垃圾分類 & 統計',desc:''},
+      {time:'11:00',title:'成果分享 & 頒獎',desc:''},
+      {time:'12:00',title:'賦歸',desc:''}
+    ],
+    missions:['完成報到','收集5袋廢棄物','完成海洋知識問答','拍照上傳打卡']
+  }
+];
+
+let currentEventId = null;
+let currentFilter = 'all';
+let countdownTimer = null;
+let bannerIndex = 0;
+let bannerTimer = null;
+let qrScanner = null;
+let currentMapCoords = null;
+
+// ==========================================
+// Init
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+  loadUserInfo();
+  renderAllEvents();
+  startBannerAuto();
+  checkMobile();
+});
+
+function loadUserInfo() {
+  const u = JSON.parse(sessionStorage.getItem('gs_user') || '{"name":"使用者","points":0}');
+  const el = document.getElementById('sidebarUser');
+  const ep = document.getElementById('sidebarPts');
+  if (el) el.textContent = u.name || '使用者';
+  if (ep) ep.textContent = (u.points || 0).toLocaleString() + ' GreenPoints';
+}
+
+function checkMobile() {
+  const bar = document.getElementById('mobileBar');
+  if (bar) bar.style.display = window.innerWidth < 768 ? 'flex' : 'none';
+  if (window.innerWidth < 768) {
+    document.getElementById('main').style.paddingTop = '60px';
+  }
+}
+
+// ==========================================
+// Render Events
+// ==========================================
+function renderAllEvents() {
+  renderGrid('liveGrid', EVENTS.filter(e => e.status === 'live'));
+  renderGrid('upcomingGrid', EVENTS.filter(e => e.status === 'upcoming'));
+  renderGrid('myGrid', EVENTS.filter(e => e.status === 'my'));
+}
+
+function renderGrid(gridId, events) {
+  const grid = document.getElementById(gridId);
+  if (!grid) return;
+  grid.innerHTML = events.length === 0
+    ? '<div style="color:rgba(255,255,255,.4);font-size:14px;padding:20px">目前無活動</div>'
+    : events.map(e => eventCard(e)).join('');
+}
+
+function eventCard(e) {
+  const regPct = Math.round((e.attendees / e.maxAttendees) * 100);
+  const statusLabel = {live:'🔴 進行中',upcoming:'🟡 即將開始',my:'✅ 已報名',ended:'⚫ 已結束'}[e.status] || '';
+  const typeIcon = {walk:'🏃',forum:'🎤',esg:'🌿',training:'📚',employee:'👥'}[e.type] || '📅';
+  const regBarColor = regPct > 80 ? 'var(--orange)' : regPct > 50 ? 'var(--yellow)' : 'var(--g400)';
+  return `
+  <div class="event-card" onclick="openEventDetail('${e.id}')">
+    <div class="card-body">
+      <!-- Top colour band -->
+      <div style="height:6px;background:linear-gradient(90deg,var(--g500),var(--teal));border-radius:18px 18px 0 0"></div>
+      <div style="padding:18px">
+        <!-- Status row -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <span style="font-size:11px;color:rgba(255,255,255,.5)">${statusLabel}</span>
+          <span style="background:rgba(34,197,94,.1);color:var(--g300);font-size:10px;padding:3px 8px;border-radius:20px;font-weight:600">${typeIcon} ${['walk','forum','esg','training','employee'][['walk','forum','esg','training','employee'].indexOf(e.type)] ? {walk:'健走',forum:'論壇',esg:'ESG',training:'訓練',employee:'員工'}[e.type] : '活動'}</span>
+        </div>
+        <!-- Title -->
+        <h3 style="color:#fff;font-size:15px;font-weight:700;line-height:1.4;margin-bottom:8px">${e.title}</h3>
+        <!-- Date & location -->
+        <div style="color:rgba(255,255,255,.5);font-size:12px;margin-bottom:4px">📅 ${e.date} ${e.time}</div>
+        <div style="color:rgba(255,255,255,.5);font-size:12px;margin-bottom:14px">📍 ${e.location}</div>
+        <!-- Rewards row -->
+        <div style="display:flex;gap:12px;margin-bottom:14px">
+          <div style="background:rgba(15,244,198,.08);border:1px solid rgba(15,244,198,.2);border-radius:8px;padding:6px 12px">
+            <span style="color:var(--teal);font-size:13px;font-weight:700">+${e.points}</span>
+            <span style="color:rgba(255,255,255,.4);font-size:11px"> 點</span>
+          </div>
+          <div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:6px 12px">
+            <span style="color:var(--g300);font-size:13px;font-weight:700">-${e.carbon}kg</span>
+            <span style="color:rgba(255,255,255,.4);font-size:11px"> CO₂</span>
+          </div>
+        </div>
+        <!-- Attendance bar -->
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+            <span style="color:rgba(255,255,255,.4);font-size:11px">報名人數</span>
+            <span style="color:rgba(255,255,255,.6);font-size:11px">${e.attendees} / ${e.maxAttendees}</span>
+          </div>
+          <div style="height:4px;background:rgba(255,255,255,.1);border-radius:2px">
+            <div style="height:4px;border-radius:2px;background:${regBarColor};width:${regPct}%;transition:.6s"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ==========================================
+// Filter
+// ==========================================
+function setFilter(btn, cat) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentFilter = cat;
+  applyFilters();
+}
+
+function filterEvents() { applyFilters(); }
+
+function applyFilters() {
+  const q = (document.getElementById('searchInput')?.value || '').toLowerCase();
+  const filtered = EVENTS.filter(e => {
+    const matchCat = currentFilter === 'all' || e.cats.includes(currentFilter);
+    const matchQ = !q || e.title.toLowerCase().includes(q) || e.location.toLowerCase().includes(q);
+    return matchCat && matchQ;
+  });
+  renderGrid('liveGrid', filtered.filter(e => e.status === 'live'));
+  renderGrid('upcomingGrid', filtered.filter(e => e.status === 'upcoming'));
+  renderGrid('myGrid', filtered.filter(e => e.status === 'my'));
+}
+
+// ==========================================
+// Event Detail Modal
+// ==========================================
+function openEventDetail(id) {
+  const e = EVENTS.find(ev => ev.id === id);
+  if (!e) return;
+  currentEventId = id;
+  currentMapCoords = {lat: e.lat, lng: e.lng, name: e.location, addr: e.address, transport: e.transport};
+
+  // Fill modal
+  document.getElementById('modalTitle').textContent = e.title;
+  document.getElementById('modalMeta').textContent = `📅 ${e.date} · 📍 ${e.location}`;
+  document.getElementById('modalDate').textContent = `${e.date} ${e.time}`;
+  document.getElementById('modalLocation').textContent = e.location;
+  document.getElementById('modalPoints').textContent = `+${e.points} GreenPoints`;
+  document.getElementById('modalAttendees').textContent = `${e.attendees} / ${e.maxAttendees} 人`;
+  document.getElementById('modalDesc').textContent = e.desc;
+
+  // Category badges
+  const catNames = {walk:'🏃 健走',forum:'🎤 論壇',esg:'🌿 ESG',training:'📚 訓練',employee:'👥 員工',health:'💪 健康'};
+  document.getElementById('modalCats').innerHTML = e.cats.map(c =>
+    `<span style="background:rgba(34,197,94,.2);color:var(--g300);font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600">${catNames[c]||c}</span>`
+  ).join('');
+
+  // ESG badges
+  document.getElementById('modalEsgBadges').innerHTML = e.esgTags.map(t =>
+    `<span style="background:rgba(15,244,198,.08);border:1px solid rgba(15,244,198,.2);color:var(--teal);font-size:12px;padding:4px 12px;border-radius:20px">${t}</span>`
+  ).join('');
+
+  // Countdown (if upcoming)
+  const cdBox = document.getElementById('countdownBox');
+  if (e.status === 'upcoming') {
+    cdBox.style.display = 'block';
+    startCountdown(new Date(e.date + 'T09:00:00'));
+  } else {
+    cdBox.style.display = 'none';
+    if (countdownTimer) clearInterval(countdownTimer);
+  }
+
+  // Action buttons
+  let actions = '';
+  if (e.status === 'live') {
+    actions = `<button onclick="openCheckinModal()" class="btn-primary" style="padding:12px 24px;font-size:14px">📲 立即簽到</button>
+               <button onclick="switchTab('missions')" class="btn-ghost" style="padding:12px 24px;font-size:14px">查看活動任務</button>`;
+  } else if (e.status === 'upcoming') {
+    actions = `<button onclick="registerEvent('${e.id}')" class="btn-primary" style="padding:12px 24px;font-size:14px">立即報名</button>
+               <button onclick="shareEvent('${e.id}')" class="btn-ghost" style="padding:12px 24px;font-size:14px">分享活動 +20點</button>`;
+  } else if (e.status === 'my') {
+    actions = `<button onclick="openCheckinModal()" class="btn-primary" style="padding:12px 24px;font-size:14px">📲 活動簽到</button>
+               <button onclick="switchTab('missions')" class="btn-ghost" style="padding:12px 24px;font-size:14px">查看任務</button>`;
+  }
+  document.getElementById('modalActions').innerHTML = actions;
+
+  // Agenda
+  document.getElementById('agendaList').innerHTML = e.agenda.map((a,i) => `
+    <div class="timeline-item" style="position:relative;padding-left:44px;margin-bottom:16px">
+      <div style="position:absolute;left:0;top:0;width:36px;height:36px;border-radius:50%;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);display:flex;align-items:center;justify-content:center;color:var(--g300);font-size:12px;font-weight:700">${i+1}</div>
+      <div style="padding:12px;background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.12);border-radius:12px">
+        <div style="color:var(--teal);font-size:12px;font-weight:700;margin-bottom:4px">${a.time}</div>
+        <div style="color:#fff;font-size:14px;font-weight:600">${a.title}</div>
+        ${a.desc ? `<div style="color:rgba(255,255,255,.5);font-size:12px;margin-top:4px">${a.desc}</div>` : ''}
+      </div>
+    </div>`).join('');
+
+  // Map
+  document.getElementById('mapLocationName').textContent = e.location;
+  document.getElementById('mapAddress').textContent = e.address;
+  document.getElementById('mapTransport').innerHTML = e.transport;
+
+  // Event missions
+  document.getElementById('eventMissionList').innerHTML = e.missions.map((m,i) => `
+    <div style="display:flex;align-items:center;gap:14px;padding:14px;background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.12);border-radius:12px;margin-bottom:10px">
+      <div style="width:32px;height:32px;border-radius:50%;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);display:flex;align-items:center;justify-content:center;color:var(--g300);font-size:14px;flex-shrink:0">☐</div>
+      <div style="flex:1">
+        <div style="color:#fff;font-size:14px;font-weight:600">${m}</div>
+        <div style="color:var(--teal);font-size:12px;margin-top:2px">+${[50,80,40,60][i]||50} 點</div>
+      </div>
+    </div>`).join('');
+
+  switchTab('info');
+  document.getElementById('eventModal').classList.add('show');
+}
+
+// ==========================================
+// Tab switching
+// ==========================================
+function switchTab(tab) {
+  ['info','agenda','map','missions'].forEach(t => {
+    document.getElementById('panel'+t.charAt(0).toUpperCase()+t.slice(1)).style.display = 'none';
+    const btn = document.getElementById('tab'+t.charAt(0).toUpperCase()+t.slice(1));
+    if (btn) {btn.style.color='rgba(255,255,255,.5)';btn.style.borderBottomColor='transparent';}
+  });
+  document.getElementById('panel'+tab.charAt(0).toUpperCase()+tab.slice(1)).style.display = 'block';
+  const activeBtn = document.getElementById('tab'+tab.charAt(0).toUpperCase()+tab.slice(1));
+  if (activeBtn) {activeBtn.style.color='var(--g300)';activeBtn.style.borderBottomColor='var(--g400)';}
+}
+
+// ==========================================
+// Countdown
+// ==========================================
+function startCountdown(targetDate) {
+  if (countdownTimer) clearInterval(countdownTimer);
+  function update() {
+    const diff = targetDate - new Date();
+    if (diff <= 0) { clearInterval(countdownTimer); return; }
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    document.getElementById('cdDays').textContent = String(d).padStart(2,'0');
+    document.getElementById('cdHours').textContent = String(h).padStart(2,'0');
+    document.getElementById('cdMins').textContent = String(m).padStart(2,'0');
+    document.getElementById('cdSecs').textContent = String(s).padStart(2,'0');
+  }
+  update();
+  countdownTimer = setInterval(update, 1000);
+}
+
+// ==========================================
+// Check-in
+// ==========================================
+function openCheckinModal() {
+  closeModal('eventModal');
+  document.getElementById('checkinModal').classList.add('show');
+}
+
+function startQRCheckin() {
+  closeModal('checkinModal');
+  document.getElementById('qrModal').classList.add('show');
+  setTimeout(() => {
+    qrScanner = new Html5Qrcode('qrReader');
+    qrScanner.start({facingMode:'environment'}, {fps:10,qrbox:{width:240,height:240}},
+      (decoded) => { handleCheckinQR(decoded); },
+      (err) => {}
+    ).catch(e => {
+      document.getElementById('qrResult').textContent = '⚠️ 相機啟動失敗，請允許相機權限';
+    });
+  }, 400);
+}
+
+function handleCheckinQR(decoded) {
+  stopQRScan();
+  document.getElementById('qrResult').textContent = '✅ 簽到成功！';
+  submitCheckin('qr', decoded);
+}
+
+function stopQRScan() {
+  if (qrScanner) { qrScanner.stop().catch(()=>{}); qrScanner = null; }
+  closeModal('qrModal');
+}
+
+function startGPSCheckin() {
+  closeModal('checkinModal');
+  if (!navigator.geolocation) { showToast('⚠️ 您的瀏覽器不支援GPS定位'); return; }
+  showToast('📍 定位中…');
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      submitCheckin('gps', `${pos.coords.latitude},${pos.coords.longitude}`);
+    },
+    () => { showToast('⚠️ 無法取得位置，請確認定位權限'); }
+  );
+}
+
+function manualCheckin() {
+  closeModal('checkinModal');
+  const code = prompt('請輸入活動簽到代碼：');
+  if (code && code.trim()) {
+    submitCheckin('manual', code.trim());
+  }
+}
+
+function submitCheckin(method, data) {
+  // In production: POST to GAS API
+  // Simulate success
+  setTimeout(() => {
+    showToast('✅ 簽到成功！獲得 +50 GreenPoints');
+  }, 800);
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+
+// ==========================================
+// Register & Share
+// ==========================================
+function registerEvent(id) {
+  // POST to GAS API in production
+  showToast('✅ 報名成功！');
+  closeModal('eventModal');
+}
+
+function shareEvent(id) {
+  const e = EVENTS.find(ev => ev.id === id);
+  if (navigator.share && e) {
+    navigator.share({title: e.title, text: '我正在參加 ' + e.title, url: location.href + '?event=' + id});
+  } else {
+    showToast('🔗 分享連結已複製！+20 點');
+  }
+}
+
+// ==========================================
+// Open Google Maps
+// ==========================================
+function openGoogleMaps() {
+  if (!currentMapCoords) return;
+  const url = `https://www.google.com/maps/search/?api=1&query=${currentMapCoords.lat},${currentMapCoords.lng}`;
+  window.open(url, '_blank');
+}
+
+// ==========================================
+// Banner Carousel
+// ==========================================
+function goBanner(i) {
+  bannerIndex = i;
+  const track = document.getElementById('bannerTrack');
+  if (track) track.style.transform = `translateX(-${i * 100}%)`;
+  [0,1,2].forEach(j => {
+    const dot = document.getElementById('dot'+j);
+    if (dot) {
+      dot.style.width = j === i ? '20px' : '8px';
+      dot.style.background = j === i ? 'var(--teal)' : 'rgba(255,255,255,.3)';
+    }
+  });
+}
+
+function startBannerAuto() {
+  bannerTimer = setInterval(() => {
+    bannerIndex = (bannerIndex + 1) % 3;
+    goBanner(bannerIndex);
+  }, 4000);
+}
+
+// ==========================================
+// Toast
+// ==========================================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.opacity = '1';
+  t.style.transform = 'translateX(-50%) translateY(0)';
+  setTimeout(() => {
+    t.style.opacity = '0';
+    t.style.transform = 'translateX(-50%) translateY(80px)';
+  }, 2800);
+}
+
+// ==========================================
+// Mobile sidebar
+// ==========================================
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// Check URL params for direct event open
+(function() {
+  const p = new URLSearchParams(location.search);
+  const eid = p.get('event');
+  if (eid) setTimeout(() => openEventDetail(eid), 300);
+})();
+</script>
+</body>
+</html>

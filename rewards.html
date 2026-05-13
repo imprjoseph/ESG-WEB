@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GreenStep | 獎勵商城</title>
+<link rel="manifest" href="manifest.json">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{--g900:#0a2e1a;--g800:#0d3d23;--g700:#0f4d2c;--g600:#146b38;--g500:#1a8a46;--g400:#22c55e;--g300:#4ade80;--g200:#86efac;--teal:#0ff4c6;--yellow:#ffd60a;--orange:#ff6b35}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Noto Sans TC',sans-serif;background:var(--g900);min-height:100vh;overflow-x:hidden}
+  .font-display{font-family:'Syne',sans-serif}
+  .bg-mesh{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 80% 60% at 20% 10%,rgba(26,138,70,.22) 0%,transparent 60%),radial-gradient(ellipse 60% 80% at 80% 80%,rgba(15,244,198,.1) 0%,transparent 50%)}
+  .grid-overlay{position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(26,138,70,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(26,138,70,.06) 1px,transparent 1px);background-size:48px 48px;mask-image:radial-gradient(ellipse 90% 90% at 50% 50%,black 40%,transparent 100%)}
+  .glass{background:rgba(13,61,35,.55);backdrop-filter:blur(24px);border:1px solid rgba(34,197,94,.18);border-radius:20px}
+  .glass-sm{background:rgba(13,61,35,.4);backdrop-filter:blur(16px);border:1px solid rgba(34,197,94,.14);border-radius:14px}
+  .sidebar{width:240px;min-height:100vh;background:rgba(8,32,17,.9);backdrop-filter:blur(24px);border-right:1px solid rgba(34,197,94,.12);position:fixed;left:0;top:0;z-index:50;display:flex;flex-direction:column;transition:.3s}
+  .nav-item{display:flex;align-items:center;gap:12px;padding:12px 20px;border-radius:12px;cursor:pointer;transition:.2s;color:rgba(255,255,255,.5);font-size:14px;margin:2px 8px;text-decoration:none}
+  .nav-item:hover,.nav-item.active{background:rgba(34,197,94,.12);color:var(--g300)}
+  .nav-item.active{border-left:3px solid var(--g400)}
+  .main{margin-left:240px;padding:28px;min-height:100vh;position:relative;z-index:1}
+  /* Reward card */
+  .reward-card{transition:.3s;cursor:pointer;position:relative}
+  .reward-card:hover{transform:translateY(-5px)}
+  .reward-card:hover .r-body{border-color:rgba(34,197,94,.4);box-shadow:0 20px 40px rgba(0,0,0,.4)}
+  .r-body{background:rgba(13,61,35,.55);backdrop-filter:blur(20px);border:1px solid rgba(34,197,94,.18);border-radius:18px;overflow:hidden;transition:.3s}
+  .r-img{width:100%;height:140px;display:flex;align-items:center;justify-content:center;font-size:56px;position:relative;overflow:hidden}
+  .sold-out-overlay{position:absolute;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center}
+  .btn-primary{background:linear-gradient(135deg,var(--g500),var(--g400));color:#fff;font-weight:700;border:none;border-radius:14px;cursor:pointer;transition:.2s;font-family:'Noto Sans TC',sans-serif}
+  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(34,197,94,.35)}
+  .btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none}
+  .btn-ghost{background:transparent;border:1px solid rgba(34,197,94,.3);color:var(--g300);font-weight:600;border-radius:14px;cursor:pointer;transition:.2s;font-family:'Noto Sans TC',sans-serif}
+  .btn-ghost:hover{background:rgba(34,197,94,.08)}
+  .filter-btn{padding:8px 18px;border-radius:30px;font-size:13px;cursor:pointer;transition:.2s;border:1px solid rgba(34,197,94,.2);color:rgba(255,255,255,.5);background:transparent}
+  .filter-btn.active{background:rgba(34,197,94,.15);border-color:var(--g400);color:var(--g300)}
+  /* Modal */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+  .modal-overlay.show{display:flex}
+  .modal-box{background:var(--g800);border:1px solid rgba(34,197,94,.25);border-radius:24px;width:100%;max-width:480px;padding:28px;position:relative;max-height:90vh;overflow-y:auto}
+  /* QR ticket */
+  .qr-ticket{background:#fff;border-radius:16px;padding:24px;text-align:center;margin:16px 0}
+  /* Voucher */
+  .voucher{background:linear-gradient(135deg,rgba(15,244,198,.1),rgba(34,197,94,.05));border:1px dashed rgba(15,244,198,.3);border-radius:16px;padding:16px;display:flex;align-items:center;gap:14px}
+  /* Tabs */
+  .tab-nav{display:flex;gap:4px;background:rgba(0,0,0,.2);border-radius:14px;padding:4px;margin-bottom:24px}
+  .tab-nav-btn{flex:1;padding:8px;border-radius:10px;background:transparent;border:none;color:rgba(255,255,255,.5);font-size:13px;font-weight:600;cursor:pointer;transition:.2s;font-family:'Noto Sans TC',sans-serif}
+  .tab-nav-btn.active{background:rgba(34,197,94,.15);color:var(--g300)}
+  /* Point display */
+  .pts-chip{background:rgba(15,244,198,.12);border:1px solid rgba(15,244,198,.3);border-radius:30px;padding:8px 18px;display:inline-flex;align-items:center;gap:8px}
+  /* Animations */
+  @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  .fade-up{animation:fadeUp .5s ease forwards}
+  .s1{animation-delay:.1s;opacity:0}.s2{animation-delay:.2s;opacity:0}.s3{animation-delay:.3s;opacity:0}
+  @keyframes confetti{0%{transform:translateY(0) rotateZ(0);opacity:1}100%{transform:translateY(200px) rotateZ(720deg);opacity:0}}
+  @media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.main{margin-left:0;padding:16px;padding-top:72px}}
+</style>
+</head>
+<body>
+<div class="bg-mesh"></div>
+<div class="grid-overlay"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div style="padding:24px 20px 16px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:32px">
+      <div style="width:36px;height:36px;background:linear-gradient(135deg,var(--g500),var(--teal));border-radius:10px;display:flex;align-items:center;justify-content:center"><span style="color:#fff;font-size:18px">🌿</span></div>
+      <span class="font-display" style="color:#fff;font-size:18px;font-weight:800">GreenStep</span>
+    </div>
+    <nav style="display:flex;flex-direction:column;gap:2px">
+      <a href="dashboard.html" class="nav-item"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</a>
+      <a href="events.html" class="nav-item"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>活動總覽</a>
+      <a href="missions.html" class="nav-item"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>任務中心</a>
+      <a href="leaderboard.html" class="nav-item"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="18 20 18 10"/><polyline points="12 20 12 4"/><polyline points="6 20 6 14"/></svg>排行榜</a>
+      <a href="esg.html" class="nav-item"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>ESG統計</a>
+      <a href="rewards.html" class="nav-item active"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>獎勵商城</a>
+      <a href="profile.html" class="nav-item"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>個人資料</a>
+    </nav>
+  </div>
+  <div style="margin-top:auto;padding:20px;border-top:1px solid rgba(34,197,94,.1)">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--g600),var(--g400));display:flex;align-items:center;justify-content:center;font-size:14px">👤</div>
+      <div><div style="color:#fff;font-size:13px;font-weight:600" id="sidebarUser">使用者</div><div style="color:var(--g300);font-size:11px" id="sidebarPts">0 GreenPoints</div></div>
+    </div>
+  </div>
+</aside>
+
+<!-- Mobile topbar -->
+<div style="display:none;position:fixed;top:0;left:0;right:0;z-index:49;background:rgba(8,32,17,.9);backdrop-filter:blur(16px);border-bottom:1px solid rgba(34,197,94,.12);padding:12px 16px;align-items:center;justify-content:space-between" id="mobileBar">
+  <button onclick="document.getElementById('sidebar').classList.toggle('open')" style="background:none;border:none;color:#fff;font-size:22px;cursor:pointer">☰</button>
+  <span class="font-display" style="color:#fff;font-weight:700">獎勵商城</span>
+  <div style="width:36px"></div>
+</div>
+
+<main class="main">
+  <!-- Header -->
+  <div class="fade-up" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:28px">
+    <div>
+      <h1 class="font-display" style="color:#fff;font-size:26px;font-weight:800">🏆 獎勵商城</h1>
+      <div style="color:rgba(255,255,255,.5);font-size:14px;margin-top:4px">用 GreenPoints 兌換專屬好禮</div>
+    </div>
+    <div class="pts-chip">
+      <span style="font-size:18px">⭐</span>
+      <div>
+        <div class="font-display" style="color:var(--teal);font-size:20px;font-weight:800" id="myPoints">1,248</div>
+        <div style="color:rgba(255,255,255,.4);font-size:10px">我的 GreenPoints</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="tab-nav fade-up s1">
+    <button class="tab-nav-btn active" id="tnShop" onclick="switchTab('shop',this)">🛒 商品列表</button>
+    <button class="tab-nav-btn" id="tnMy" onclick="switchTab('my',this)">🎫 我的兌換</button>
+    <button class="tab-nav-btn" id="tnHistory" onclick="switchTab('history',this)">📜 點數紀錄</button>
+  </div>
+
+  <!-- Shop Tab -->
+  <div id="panelShop" style="display:block">
+    <!-- Featured Banner -->
+    <div class="fade-up s1" style="background:linear-gradient(135deg,rgba(15,244,198,.12) 0%,rgba(34,197,94,.05) 100%);border:1px solid rgba(15,244,198,.2);border-radius:20px;padding:22px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px">
+      <div>
+        <div style="color:var(--teal);font-size:12px;font-weight:700;letter-spacing:.05em;margin-bottom:6px">⚡ 限時特惠 · 本週末結束</div>
+        <div class="font-display" style="color:#fff;font-size:20px;font-weight:700">環保杯 × GreenStep 聯名款</div>
+        <div style="color:rgba(255,255,255,.5);font-size:13px;margin-top:4px">原本 500點 → 現在只要 <span style="color:var(--yellow);font-weight:700">350點</span></div>
+      </div>
+      <div style="font-size:64px">☕</div>
+    </div>
+
+    <!-- Filters -->
+    <div class="fade-up s1" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px">
+      <button class="filter-btn active" onclick="setFilter(this,'all')">全部</button>
+      <button class="filter-btn" onclick="setFilter(this,'eco')">🌿 環保商品</button>
+      <button class="filter-btn" onclick="setFilter(this,'food')">🍽️ 餐飲券</button>
+      <button class="filter-btn" onclick="setFilter(this,'charity')">❤️ 公益捐款</button>
+      <button class="filter-btn" onclick="setFilter(this,'experience')">✨ 體驗活動</button>
+      <button class="filter-btn" onclick="setFilter(this,'voucher')">🎫 折扣券</button>
+    </div>
+
+    <!-- Sort + Count -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+      <div style="color:rgba(255,255,255,.4);font-size:13px" id="resultCount">共 20 項商品</div>
+      <select id="sortSelect" onchange="renderRewards()" style="background:rgba(13,61,35,.6);border:1px solid rgba(34,197,94,.2);color:rgba(255,255,255,.7);padding:7px 12px;border-radius:10px;font-size:12px;outline:none">
+        <option value="hot">熱門推薦</option>
+        <option value="priceLow">點數 低→高</option>
+        <option value="priceHigh">點數 高→低</option>
+        <option value="new">最新上架</option>
+      </select>
+    </div>
+
+    <!-- Grid -->
+    <div id="rewardGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px"></div>
+  </div>
+
+  <!-- My Vouchers Tab -->
+  <div id="panelMy" style="display:none">
+    <div class="fade-up" style="display:flex;flex-direction:column;gap:14px" id="myVouchers"></div>
+  </div>
+
+  <!-- History Tab -->
+  <div id="panelHistory" style="display:none">
+    <div class="fade-up glass" style="padding:22px" id="historyPanel">
+      <div class="font-display" style="color:#fff;font-size:16px;font-weight:700;margin-bottom:16px">點數異動紀錄</div>
+      <div id="ptHistoryList"></div>
+    </div>
+  </div>
+</main>
+
+<!-- Redeem Confirm Modal -->
+<div class="modal-overlay" id="redeemModal">
+  <div class="modal-box">
+    <button onclick="closeModal('redeemModal')" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,.1);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px">✕</button>
+    <div style="text-align:center;margin-bottom:20px">
+      <div id="rdEmoji" style="font-size:56px;margin-bottom:12px"></div>
+      <h3 class="font-display" id="rdName" style="color:#fff;font-size:20px;font-weight:700;margin-bottom:6px"></h3>
+      <div id="rdDesc" style="color:rgba(255,255,255,.5);font-size:13px;line-height:1.6"></div>
+    </div>
+    <div style="background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.15);border-radius:14px;padding:16px;margin-bottom:20px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:10px">
+        <span style="color:rgba(255,255,255,.5);font-size:13px">兌換所需點數</span>
+        <span id="rdCost" style="color:var(--teal);font-size:15px;font-weight:700"></span>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:10px">
+        <span style="color:rgba(255,255,255,.5);font-size:13px">我的點數</span>
+        <span id="rdMyPts" style="color:#fff;font-size:15px;font-weight:600"></span>
+      </div>
+      <div style="height:1px;background:rgba(34,197,94,.15);margin:10px 0"></div>
+      <div style="display:flex;justify-content:space-between">
+        <span style="color:rgba(255,255,255,.5);font-size:13px">兌換後剩餘</span>
+        <span id="rdAfter" style="color:var(--g300);font-size:15px;font-weight:700"></span>
+      </div>
+    </div>
+    <div id="rdStockWarning" style="display:none;background:rgba(255,107,53,.1);border:1px solid rgba(255,107,53,.3);border-radius:10px;padding:10px;margin-bottom:16px;color:var(--orange);font-size:13px;text-align:center"></div>
+    <div style="display:flex;gap:10px">
+      <button onclick="closeModal('redeemModal')" class="btn-ghost" style="flex:1;padding:13px">取消</button>
+      <button id="rdConfirmBtn" onclick="confirmRedeem()" class="btn-primary" style="flex:2;padding:13px;font-size:14px">確認兌換</button>
+    </div>
+  </div>
+</div>
+
+<!-- Voucher Detail Modal -->
+<div class="modal-overlay" id="voucherModal">
+  <div class="modal-box" style="text-align:center">
+    <button onclick="closeModal('voucherModal')" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,.1);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px">✕</button>
+    <div style="font-size:40px;margin-bottom:12px" id="vcEmoji"></div>
+    <h3 id="vcName" class="font-display" style="color:#fff;font-size:20px;font-weight:700;margin-bottom:4px"></h3>
+    <div id="vcExpiry" style="color:rgba(255,255,255,.4);font-size:12px;margin-bottom:20px"></div>
+    <!-- QR Code placeholder -->
+    <div class="qr-ticket" id="vcQR">
+      <div style="color:#0a2e1a;font-size:11px;margin-bottom:12px;font-weight:700">掃描此QRCode核銷</div>
+      <!-- SVG QR placeholder -->
+      <svg width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="10" y="10" width="60" height="60" rx="4" fill="none" stroke="#0a2e1a" stroke-width="4"/>
+        <rect x="20" y="20" width="40" height="40" rx="2" fill="#0a2e1a"/>
+        <rect x="90" y="10" width="60" height="60" rx="4" fill="none" stroke="#0a2e1a" stroke-width="4"/>
+        <rect x="100" y="20" width="40" height="40" rx="2" fill="#0a2e1a"/>
+        <rect x="10" y="90" width="60" height="60" rx="4" fill="none" stroke="#0a2e1a" stroke-width="4"/>
+        <rect x="20" y="100" width="40" height="40" rx="2" fill="#0a2e1a"/>
+        <rect x="90" y="90" width="10" height="10" fill="#0a2e1a"/>
+        <rect x="110" y="90" width="10" height="10" fill="#0a2e1a"/>
+        <rect x="130" y="90" width="20" height="10" fill="#0a2e1a"/>
+        <rect x="90" y="110" width="20" height="10" fill="#0a2e1a"/>
+        <rect x="120" y="110" width="30" height="10" fill="#0a2e1a"/>
+        <rect x="90" y="130" width="30" height="10" fill="#0a2e1a"/>
+        <rect x="130" y="120" width="20" height="30" fill="#0a2e1a"/>
+      </svg>
+      <div id="vcCode" style="color:rgba(10,46,26,.6);font-size:11px;margin-top:8px;letter-spacing:.1em;font-family:monospace"></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button onclick="closeModal('voucherModal')" class="btn-ghost" style="flex:1;padding:12px;font-size:13px">關閉</button>
+      <button onclick="shareVoucher()" class="btn-primary" style="flex:1;padding:12px;font-size:13px">分享</button>
+    </div>
+  </div>
+</div>
+
+<!-- Success Toast -->
+<div id="toast" style="position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:rgba(34,197,94,.95);color:#fff;padding:12px 24px;border-radius:14px;font-size:14px;font-weight:600;z-index:200;transition:.4s;opacity:0;pointer-events:none;white-space:nowrap">✅ 兌換成功！</div>
+
+<script src="config.js" onerror="console.warn('config.js missing')"></script>
+<script>
+// ==========================================
+// GreenStep Rewards Store
+// ==========================================
+
+const REWARDS = [
+  {id:'r01',emoji:'☕',name:'GreenStep 聯名環保杯',desc:'304不鏽鋼保溫杯，限定綠色印花。',cat:'eco',cost:350,stock:48,sold:102,featured:true,expiry:'',new:false},
+  {id:'r02',emoji:'🌱',name:'台灣原生樹種 植樹認養',desc:'認養一棵台灣原生樹，獲得認養證書與GPS追蹤。',cat:'charity',cost:200,stock:999,sold:234,featured:false,expiry:'2026-12-31',new:false},
+  {id:'r03',emoji:'🎫',name:'有機早午餐 50元折扣券',desc:'台北市指定有機餐廳享50元折抵。',cat:'food',cost:80,stock:120,sold:88,featured:false,expiry:'2026-06-30',new:false},
+  {id:'r04',emoji:'🎒',name:'環保提袋（大）',desc:'100% 再生材質，適合日常購物與辦公。',cat:'eco',cost:150,stock:60,sold:45,featured:false,expiry:'',new:false},
+  {id:'r05',emoji:'🧴',name:'天然洗手液補充包',desc:'環保補充包，減少一次性容器使用。',cat:'eco',cost:100,stock:200,sold:67,featured:false,expiry:'',new:true},
+  {id:'r06',emoji:'🍵',name:'有機抹茶下午茶體驗',desc:'信義區永續茶館雙人下午茶體驗券。',cat:'experience',cost:600,stock:20,sold:8,featured:true,expiry:'2026-08-31',new:true},
+  {id:'r07',emoji:'❤️',name:'捐助台灣淨灘基金',desc:'等值點數捐入海洋保育基金，獲得捐款收據。',cat:'charity',cost:100,stock:999,sold:512,featured:false,expiry:'',new:false},
+  {id:'r08',emoji:'📱',name:'永續App 進階會員 30天',desc:'解鎖進階碳足跡分析、個人ESG報告功能。',cat:'voucher',cost:300,stock:999,sold:145,featured:false,expiry:'2026-12-31',new:false},
+  {id:'r09',emoji:'🏊',name:'健身房體驗券',desc:'台北市指定健身中心單次入場體驗。',cat:'experience',cost:250,stock:40,sold:29,featured:false,expiry:'2026-07-31',new:false},
+  {id:'r10',emoji:'🌿',name:'植物奶咖啡 買一送一',desc:'特定綠色咖啡品牌，使用植物奶免費升級。',cat:'food',cost:60,stock:150,sold:134,featured:false,expiry:'2026-06-15',new:false},
+  {id:'r11',emoji:'♻️',name:'3C回收折抵券',desc:'舊手機、筆電送修/回收可享額外折抵。',cat:'eco',cost:200,stock:80,sold:31,featured:false,expiry:'2026-09-30',new:true},
+  {id:'r12',emoji:'🚲',name:'共享電動自行車 月票',desc:'Youbike/iRent電動自行車月租優惠。',cat:'experience',cost:450,stock:30,sold:18,featured:true,expiry:'2026-06-30',new:false},
+];
+
+const MY_VOUCHERS = [
+  {id:'v01',emoji:'🎫',name:'有機早午餐 50元折扣券',code:'GS-2026-A7F3',expiry:'2026-06-30',used:false},
+  {id:'v02',emoji:'🌱',name:'台灣原生樹種 植樹認養',code:'GS-2026-B2K9',expiry:'2026-12-31',used:false},
+  {id:'v03',emoji:'☕',name:'GreenStep 環保杯折價券',code:'GS-2026-C4M1',expiry:'2026-05-31',used:true},
+];
+
+const POINT_HISTORY = [
+  {date:'05/11',type:'earn',desc:'完成ESG任務：步行上班',pts:+20},
+  {date:'05/11',type:'earn',desc:'活動簽到：ESG健走挑戰賽',pts:+50},
+  {date:'05/10',type:'spend',desc:'兌換：有機早午餐折扣券',pts:-80},
+  {date:'05/10',type:'earn',desc:'完成每日任務：自備環保杯',pts:+5},
+  {date:'05/09',type:'earn',desc:'排行榜獎勵：個人前10名',pts:+100},
+  {date:'05/09',type:'earn',desc:'ESG行為記錄：素食餐點',pts:+25},
+  {date:'05/08',type:'earn',desc:'完成活動任務：ESG學習打卡',pts:+40},
+  {date:'05/07',type:'spend',desc:'兌換：植樹認養',pts:-200},
+];
+
+let myPts = 1248;
+let currentFilter = 'all';
+let currentRedeem = null;
+
+// ==========================================
+// Init
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+  loadUserInfo();
+  renderRewards();
+  renderMyVouchers();
+  renderPointHistory();
+  checkMobile();
+});
+
+function loadUserInfo() {
+  const u = JSON.parse(sessionStorage.getItem('gs_user') || '{}');
+  myPts = u.points || myPts;
+  document.getElementById('sidebarUser').textContent = u.name || '使用者';
+  document.getElementById('sidebarPts').textContent = myPts.toLocaleString() + ' GreenPoints';
+  document.getElementById('myPoints').textContent = myPts.toLocaleString();
+}
+
+function checkMobile() {
+  const bar = document.getElementById('mobileBar');
+  if (bar) bar.style.display = window.innerWidth < 768 ? 'flex' : 'none';
+}
+
+// ==========================================
+// Tab Navigation
+// ==========================================
+function switchTab(tab, btn) {
+  ['panelShop','panelMy','panelHistory'].forEach(p => document.getElementById(p).style.display = 'none');
+  ['tnShop','tnMy','tnHistory'].forEach(b => document.getElementById(b).classList.remove('active'));
+  document.getElementById('panel'+tab.charAt(0).toUpperCase()+tab.slice(1)).style.display = 'block';
+  btn.classList.add('active');
+}
+
+// ==========================================
+// Render Rewards Grid
+// ==========================================
+function setFilter(btn, cat) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentFilter = cat;
+  renderRewards();
+}
+
+function renderRewards() {
+  const sort = document.getElementById('sortSelect')?.value || 'hot';
+  let list = currentFilter === 'all' ? [...REWARDS] : REWARDS.filter(r => r.cat === currentFilter);
+  if (sort === 'priceLow') list.sort((a,b) => a.cost-b.cost);
+  else if (sort === 'priceHigh') list.sort((a,b) => b.cost-a.cost);
+  else if (sort === 'new') list = list.filter(r => r.new).concat(list.filter(r => !r.new));
+  else list.sort((a,b) => b.sold-a.sold);
+
+  document.getElementById('resultCount').textContent = `共 ${list.length} 項商品`;
+  const canAfford = r => myPts >= r.cost;
+  const isNew = r => r.new;
+  const isFeatured = r => r.featured;
+
+  document.getElementById('rewardGrid').innerHTML = list.map(r => {
+    const outOfStock = r.stock === 0;
+    const lowStock = !outOfStock && r.stock < 20;
+    const affordable = canAfford(r);
+    return `
+    <div class="reward-card" onclick="${outOfStock ? 'void(0)' : `openRedeemModal('${r.id}')`}">
+      <div class="r-body" style="opacity:${outOfStock?'.6':'1'}">
+        <!-- Badges -->
+        <div style="position:absolute;top:10px;left:10px;z-index:5;display:flex;flex-direction:column;gap:5px">
+          ${isFeatured(r) ? '<span style="background:rgba(255,214,10,.2);color:var(--yellow);font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;border:1px solid rgba(255,214,10,.3)">⭐ 熱門</span>' : ''}
+          ${isNew(r) ? '<span style="background:rgba(15,244,198,.15);color:var(--teal);font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;border:1px solid rgba(15,244,198,.3)">✨ 新品</span>' : ''}
+          ${lowStock ? '<span style="background:rgba(255,107,53,.15);color:var(--orange);font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;border:1px solid rgba(255,107,53,.3)">⚠️ 剩${r.stock}件</span>' : ''}
+        </div>
+        <div class="r-img" style="background:linear-gradient(135deg,rgba(13,61,35,.8),rgba(9,39,20,.9))">
+          <span>${r.emoji}</span>
+          ${outOfStock ? '<div class="sold-out-overlay"><span style="color:#fff;font-size:14px;font-weight:700;background:rgba(0,0,0,.6);padding:8px 16px;border-radius:20px">已售完</span></div>' : ''}
+        </div>
+        <div style="padding:14px">
+          <div style="color:#fff;font-size:14px;font-weight:700;margin-bottom:4px;line-height:1.4">${r.name}</div>
+          <div style="color:rgba(255,255,255,.4);font-size:11px;margin-bottom:12px;line-height:1.5;min-height:32px">${r.desc}</div>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div style="display:flex;align-items:baseline;gap:4px">
+              <span class="font-display" style="color:${affordable?'var(--teal)':'rgba(255,255,255,.4)'};font-size:20px;font-weight:800">${r.cost}</span>
+              <span style="color:rgba(255,255,255,.4);font-size:11px">點</span>
+            </div>
+            <button ${outOfStock||!affordable?'disabled':''} onclick="event.stopPropagation();openRedeemModal('${r.id}')" class="btn-primary" style="padding:7px 16px;font-size:12px;${!affordable&&!outOfStock?'background:rgba(255,255,255,.1);':''}">
+              ${outOfStock ? '售完' : affordable ? '立即兌換' : '點數不足'}
+            </button>
+          </div>
+          ${r.expiry ? `<div style="color:rgba(255,255,255,.3);font-size:10px;margin-top:6px">有效期限：${r.expiry}</div>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ==========================================
+// Redeem Modal
+// ==========================================
+function openRedeemModal(id) {
+  const r = REWARDS.find(rw => rw.id === id);
+  if (!r) return;
+  currentRedeem = r;
+  document.getElementById('rdEmoji').textContent = r.emoji;
+  document.getElementById('rdName').textContent = r.name;
+  document.getElementById('rdDesc').textContent = r.desc;
+  document.getElementById('rdCost').textContent = r.cost + ' GreenPoints';
+  document.getElementById('rdMyPts').textContent = myPts.toLocaleString() + ' 點';
+  const after = myPts - r.cost;
+  document.getElementById('rdAfter').textContent = after.toLocaleString() + ' 點';
+  const warn = document.getElementById('rdStockWarning');
+  if (r.stock < 10) { warn.style.display = 'block'; warn.textContent = `⚠️ 庫存剩餘 ${r.stock} 件，手慢無！`; }
+  else warn.style.display = 'none';
+  document.getElementById('rdConfirmBtn').disabled = myPts < r.cost;
+  document.getElementById('redeemModal').classList.add('show');
+}
+
+function confirmRedeem() {
+  if (!currentRedeem) return;
+  myPts -= currentRedeem.cost;
+  document.getElementById('myPoints').textContent = myPts.toLocaleString();
+  document.getElementById('sidebarPts').textContent = myPts.toLocaleString() + ' GreenPoints';
+  closeModal('redeemModal');
+  // Add to my vouchers
+  MY_VOUCHERS.unshift({
+    id:'v' + Date.now(),emoji:currentRedeem.emoji,
+    name:currentRedeem.name,
+    code:'GS-2026-' + Math.random().toString(36).substring(2,6).toUpperCase(),
+    expiry:currentRedeem.expiry || '2026-12-31',used:false
+  });
+  renderMyVouchers();
+  fireConfetti();
+  showToast(`🎉 兌換成功！${currentRedeem.emoji} ${currentRedeem.name}`);
+  // Re-render grid to update affordability
+  setTimeout(() => renderRewards(), 500);
+}
+
+// ==========================================
+// My Vouchers
+// ==========================================
+function renderMyVouchers() {
+  document.getElementById('myVouchers').innerHTML = MY_VOUCHERS.map(v => `
+    <div class="voucher ${v.used ? 'opacity-50' : ''}" style="opacity:${v.used?'.5':'1'}">
+      <div style="width:52px;height:52px;border-radius:14px;background:rgba(15,244,198,.1);border:1px solid rgba(15,244,198,.2);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0">${v.emoji}</div>
+      <div style="flex:1;min-width:0">
+        <div style="color:#fff;font-size:14px;font-weight:700;margin-bottom:2px">${v.name}</div>
+        <div style="color:rgba(255,255,255,.4);font-size:11px;margin-bottom:6px">有效至 ${v.expiry}</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-family:monospace;color:var(--teal);font-size:12px;background:rgba(15,244,198,.08);padding:3px 10px;border-radius:8px">${v.code}</span>
+          ${v.used ? '<span style="color:rgba(255,255,255,.3);font-size:11px">已使用</span>' : '<span style="background:rgba(34,197,94,.15);color:var(--g300);font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600">可使用</span>'}
+        </div>
+      </div>
+      ${!v.used ? `<button onclick="openVoucher('${v.id}')" class="btn-primary" style="padding:10px 16px;font-size:12px;flex-shrink:0">查看</button>` : ''}
+    </div>`).join('');
+}
+
+function openVoucher(id) {
+  const v = MY_VOUCHERS.find(vv => vv.id === id);
+  if (!v) return;
+  document.getElementById('vcEmoji').textContent = v.emoji;
+  document.getElementById('vcName').textContent = v.name;
+  document.getElementById('vcExpiry').textContent = '有效至 ' + v.expiry;
+  document.getElementById('vcCode').textContent = v.code;
+  document.getElementById('voucherModal').classList.add('show');
+}
+
+function shareVoucher() {
+  showToast('🔗 票券連結已複製！');
+  closeModal('voucherModal');
+}
+
+// ==========================================
+// Point History
+// ==========================================
+function renderPointHistory() {
+  document.getElementById('ptHistoryList').innerHTML = POINT_HISTORY.map(h => `
+    <div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid rgba(34,197,94,.08)">
+      <div style="width:40px;height:40px;border-radius:12px;background:${h.pts>0?'rgba(34,197,94,.1)':'rgba(255,107,53,.1)'};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${h.pts>0?'⭐':'🛒'}</div>
+      <div style="flex:1;min-width:0">
+        <div style="color:#fff;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${h.desc}</div>
+        <div style="color:rgba(255,255,255,.4);font-size:11px">${h.date}</div>
+      </div>
+      <div class="font-display" style="color:${h.pts>0?'var(--g300)':'var(--orange)'};font-size:15px;font-weight:800;flex-shrink:0">${h.pts>0?'+':''}${h.pts}</div>
+    </div>`).join('');
+}
+
+// ==========================================
+// Confetti
+// ==========================================
+function fireConfetti() {
+  const colors = ['#22c55e','#0ff4c6','#ffd60a','#ff6b35','#4ade80'];
+  for (let i = 0; i < 30; i++) {
+    const el = document.createElement('div');
+    el.style.cssText = `position:fixed;top:${Math.random()*40}%;left:${Math.random()*100}%;width:${6+Math.random()*8}px;height:${6+Math.random()*8}px;background:${colors[Math.floor(Math.random()*colors.length)]};border-radius:${Math.random()>0.5?'50%':'2px'};pointer-events:none;z-index:9999;animation:confetti ${1+Math.random()}s ease forwards;animation-delay:${Math.random()*0.5}s`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2000);
+  }
+}
+
+// ==========================================
+// Toast
+// ==========================================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.opacity = '1';
+  t.style.transform = 'translateX(-50%) translateY(0)';
+  setTimeout(() => {t.style.opacity='0';t.style.transform='translateX(-50%) translateY(80px)';}, 3000);
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+</script>
+</body>
+</html>
