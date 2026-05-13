@@ -16,7 +16,7 @@ const CONFIG = {
 
   // ─── Google Apps Script API ──────────────────────────────
   // 部署後請將此 URL 替換為您的 GAS 網頁應用程式 URL
-  GAS_API_URL: 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec',
+  GAS_API_URL: 'https://script.google.com/macros/s/AKfycbwLkm1yGV3IJ8k7gyia0qJOgBgDmVreyBID-Mg7P9Myqd8SvOnm-kPUygvMmkex2un8/exec',
 
   // ─── Google Services ────────────────────────────────────
   GOOGLE_CLIENT_ID: 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
